@@ -13,11 +13,14 @@
 #include "glm/vec3.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 
+const int WINDOW_WIDTH = 1500;
+const int WINDOW_HEIGHT = 1200;
+
 #include "box.h"
+#include "particle.h"
 
 using namespace std;
-const int WINDOW_WIDTH = 1000;
-const int WINDOW_HEIGHT = 800;
+
 const string title = "Fun with GPU Particles";
 
 string fileContentToString(string pathToFile) {
@@ -171,15 +174,25 @@ int main() {
     glewInit();
 
     GLuint shaderProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragment.glsl");
+    GLuint particleShader = createShaderProgram("shaders\\vertex.glsl", "shaders\\particleFragment.glsl");
+    GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragment.glsl");
     Box b{};
+    Particle p{};
     
+    ParticleSystem system = createFrameBuffer();
+
     glfwSetKeyCallback(window, keyCallback);
 
     glm::mat4 perspective = glm::perspectiveFov(1.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.01f, 1000.0f);
+
+    initStuff();
     
+    glEnable(GL_DEPTH_TEST);
+
     float t = 0;
     while(!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0,1,1,1);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float speed = 0.001f;
         float rotSpeed = 0.001f;
@@ -196,10 +209,18 @@ int main() {
 
         glm::vec3 lookAtCenter = cameraPosition + cameraForward * 1.0f;
         glm::mat4 camera = glm::lookAt(cameraPosition, lookAtCenter, cameraUp);
-        renderBox(b, shaderProgram, camera, perspective);
+        renderBox(b, shaderProgram, particleShader, camera, perspective); // updates particle system
+
+        renderInstanced(b, shaderProgramInstanced, camera, perspective); // Renders particles
+
+
+
+
+        // renderParticle(p, shaderProgram, camera, perspective);
+
+        // updateParticleSystem(system, particleShader, shaderProgram);
 
         t += 0.001f;
-
         //b.position.x = sin(t); 
         b.scale.x = 1;
 
