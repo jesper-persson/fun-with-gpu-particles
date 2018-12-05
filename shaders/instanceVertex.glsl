@@ -7,6 +7,7 @@ uniform mat4 translation;
 uniform mat4 scale;
 uniform mat4 view;
 uniform mat4 perspective;
+uniform int textureSize;
 uniform sampler2D tex;
 
 out vec2 texture_out;
@@ -14,11 +15,11 @@ out vec2 texture_out;
 void main() {
     texture_out = texture.xy;
 
-    int texWidth = 100;
-    int texHeight = 100;
+    int texWidth = textureSize;
+    int texHeight = textureSize;
     int index = gl_InstanceID * 1;
-    float x = (index % texWidth) / 100.0f;
-    float y = (index / texHeight) / 100.0f;
+    float x = (index % texWidth) / float(textureSize);
+    float y = (index / texHeight) / float(textureSize);
 
     vec3 pixelValue = texture(tex, vec2(x,y)).xyz;
 

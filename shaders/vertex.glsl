@@ -3,7 +3,7 @@
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 texture;
 
-uniform mat4 modelToWorld;
+uniform mat4 modelToWorld; // Is modelToClip though?
 
 out vec2 texture_out;
 

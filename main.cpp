@@ -12,12 +12,15 @@
 #include "glm/gtc/type_ptr.hpp" 
 #include "glm/vec3.hpp"
 #include "glm/gtx/rotate_vector.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 const int WINDOW_WIDTH = 1500;
 const int WINDOW_HEIGHT = 1200;
 
-#include "box.h"
-#include "particle.h"
+#include "ParticleSystem.h"
+#include "simpleBox.h"
+#include "simpleQuad.h"
+#include "common.hpp"
 
 using namespace std;
 
@@ -93,68 +96,71 @@ GLuint createShaderProgram(string vertexSourcePath, string fragmentSourcePath) {
     return shaderProgram;
 }
 
-glm::vec3 cameraPosition = glm::vec3(0, 0, 0.9f);
-glm::vec3 cameraUp = glm::vec3(0, 1, 0);
-glm::vec3 cameraForward = glm::vec3(0, 0, -1.0f);
-glm::vec3 moveDirection = glm::vec3(0, 0, 0);
-float rotAboutUpAxis = 0;
-float rotAboutLeftAxis = 0;
+struct Camera {
+    glm::vec3 position = glm::vec3(0, 0, 0.9f);
+    glm::vec3 up = glm::vec3(0, 1, 0);
+    glm::vec3 forward = glm::vec3(0, 0, -1.0f);
+    float rotAboutUpAxis = 0;
+    float rotAboutLeftAxis = 0;
+    float moveXAxis = 0;
+    float moveZAxis = 0;
+};
+
+Camera camera;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    glm::vec3 left = glm::normalize(glm::cross(cameraUp, cameraForward));
-
-  
+    glm::vec3 left = glm::normalize(glm::cross(camera.up, camera.forward));
 
     if (key == GLFW_KEY_W) {
-        moveDirection = cameraForward;
+        camera.moveZAxis = -1;
         if (action == GLFW_RELEASE) {
-            moveDirection = glm::vec3(0, 0, 0);
+            camera.moveZAxis = 0;
         }
     }
     if (key == GLFW_KEY_S) {
-        moveDirection = cameraForward  * -1.0f;
+        camera.moveZAxis = 1;
         if (action == GLFW_RELEASE) {
-            moveDirection = glm::vec3(0, 0, 0);
+            camera.moveZAxis = 0;
         }
     }
     if (key == GLFW_KEY_A) {
-        moveDirection = left ;
+        camera.moveXAxis = -1;
         if (action == GLFW_RELEASE) {
-            moveDirection = glm::vec3(0, 0, 0);
+            camera.moveXAxis = 0;
         }
     }
     if (key == GLFW_KEY_D) {
-        moveDirection = left  * -1.0f;
+        camera.moveXAxis = 1;
         if (action == GLFW_RELEASE) {
-            moveDirection = glm::vec3(0, 0, 0);
+            camera.moveXAxis = 0;
         }
     }
     if (key == GLFW_KEY_LEFT) {
         if (action == GLFW_PRESS) {
-            rotAboutUpAxis = 1.0f;
+            camera.rotAboutUpAxis = 1.0f;
         } else if (action == GLFW_RELEASE) {
-            rotAboutUpAxis = 0.0f;
+            camera.rotAboutUpAxis = 0.0f;
         }
     }
     if (key == GLFW_KEY_RIGHT) {
         if (action == GLFW_PRESS) {
-            rotAboutUpAxis = -1.0f;
+            camera.rotAboutUpAxis = -1.0f;
         } else if (action == GLFW_RELEASE) {
-            rotAboutUpAxis = 0.0f;
+            camera.rotAboutUpAxis = 0.0f;
         }
     }
     if (key == GLFW_KEY_UP) {
         if (action == GLFW_PRESS) {
-            rotAboutLeftAxis = 1.0f;
+            camera.rotAboutLeftAxis = 1.0f;
         } else if (action == GLFW_RELEASE) {
-            rotAboutLeftAxis = 0.0f;
+            camera.rotAboutLeftAxis = 0.0f;
         }
     }
     if (key == GLFW_KEY_DOWN) {
         if (action == GLFW_PRESS) {
-            rotAboutLeftAxis = -1.0f;
+            camera.rotAboutLeftAxis = -1.0f;
         } else if (action == GLFW_RELEASE) {
-            rotAboutLeftAxis = 0.0f;
+            camera.rotAboutLeftAxis = 0.0f;
         }
     }
 }
@@ -174,56 +180,137 @@ int main() {
     glewInit();
 
     GLuint shaderProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragment.glsl");
+    GLuint shaderProgramDepth = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragmentDepth.glsl");
     GLuint particleShader = createShaderProgram("shaders\\vertex.glsl", "shaders\\particleFragment.glsl");
     GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragment.glsl");
-    Box b{};
-    Particle p{};
+    GLuint shaderProgramInstancedDepth = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragmentDepth.glsl");
     
-    ParticleSystem system = createFrameBuffer();
+    ParticleSystem ps{100000};
+    ps.scale = glm::vec3(0.006f, 0.006f, 1.0f);
+    ps.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);
 
     glm::mat4 perspective = glm::perspectiveFov(1.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.01f, 1000.0f);
-
-    initStuff();
+    glm::mat4 depthCameraMatrix = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0,-1.0f,0), glm::vec3(0,0,-1));
+    glm::mat4 orthoProjection = glm::ortho(-(float)WINDOW_WIDTH/2.0f,(float)WINDOW_WIDTH/2.0f,-(float)WINDOW_HEIGHT/2.0f,(float)WINDOW_HEIGHT/2.0f,-20.0f,20.0f);
+    glm::mat4 orthoProjectionDepth = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,-10.0f,10.0f);
     
     glEnable(GL_DEPTH_TEST);
 
-    float t = 0;
-    while(!glfwWindowShouldClose(window)) {
-        glClearColor(0,1,1,1);
+    SimpleBox simpleBox{};
+    SimpleBox simpleBox2{};
+    SimpleBox simpleBox3{};
+    simpleBox.position.y = -2.0f;
+    simpleBox.position.z = -0.3f;
+    simpleBox.position.x = -0.3f;
+    simpleBox.scale = glm::vec3(0.4f, 0.2f, 0.2f);
+    simpleBox2.position.z = 0.0f;
+    simpleBox2.position.y = -5.0f;
+    simpleBox2.position.x = 0.0f;
+    simpleBox2.scale = glm::vec3(5.0f, 0.2f, 5.0f);
+    simpleBox2.rotation = glm::eulerAngleZ(3.14/4.0f);
+
+    simpleBox3.position = glm::vec3(-0.0f, -1.0f, 0.0f);
+    simpleBox3.scale = glm::vec3(0.8f, 0.2f, 0.8f);
+    simpleBox3.rotation = glm::eulerAngleZ(-3.14/15.0f);
+
+    simpleBox3.textureId = loadPNGTexture("images/ground.png");
+    simpleBox2.textureId = loadPNGTexture("images/ground.png");
+    
+
+    DepthFBO fboDepth = createFBOForDepth();
+
+    // This is the quad in lower right corner used for debugging depth texture
+    SimpleQuad simpleQuad{};
+    float simpleQuadSize = 300.0f;
+    simpleQuad.position = glm::vec3(WINDOW_WIDTH/2.0f - simpleQuadSize/2.0f, -WINDOW_HEIGHT/2.0f + simpleQuadSize/2.0f, 0);
+    simpleQuad.scale = glm::vec3(simpleQuadSize, simpleQuadSize, 1.0f);
+    simpleQuad.textureId = fboDepth.texture;
+    
+
+    glm::mat4 identity = glm::mat4(1.0f);
+
+    glm::mat4 toLightSpace = orthoProjectionDepth * depthCameraMatrix;
+
+    glfwSwapInterval(0);
+
+    double previousTimeFPS = glfwGetTime();
+    double previousTime = glfwGetTime();
+    int frameCounter = 0;
+    float dt = 0.16f;
+
+    while (!glfwWindowShouldClose(window)) {
+        glClearColor(95/255.0f, 111/255.0f, 119/255.0f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float speed = 0.001f;
-        float rotSpeed = 0.001f;
-        cameraPosition = cameraPosition + moveDirection * speed;
-        if (rotAboutUpAxis > 0.1f || rotAboutUpAxis < 0.1f) {
-            cameraForward = glm::normalize(glm::rotate(cameraForward, rotSpeed * rotAboutUpAxis, glm::vec3(0, 1, 0)));   
-            cameraUp = glm::normalize(glm::rotate(cameraUp, rotSpeed * rotAboutUpAxis, glm::vec3(0, 1, 0)));   
+        // Calculate dt and FPS
+        double currentTime = glfwGetTime();
+        dt = currentTime - previousTime;
+        previousTime = currentTime;
+        if (currentTime - previousTimeFPS > 1.0f) {
+            int fps = frameCounter;
+            string title = "FPS: " + to_string(fps) + " - Frame time: " + to_string(dt) + " s";
+            glfwSetWindowTitle(window, title.c_str());
+            frameCounter = 0;
+            previousTimeFPS = currentTime;
         }
-        if (rotAboutLeftAxis > 0.1f || rotAboutLeftAxis < 0.1f) {
-            glm::vec3 left = glm::normalize(glm::cross(cameraUp, cameraForward));
-            cameraUp = glm::normalize(glm::rotate(cameraUp, rotSpeed * rotAboutLeftAxis, left));
-            cameraForward = glm::normalize(glm::cross(left, cameraUp));
+        frameCounter++;
+        
+        // Camera movement
+        float speed = 1.1f * dt;
+        float rotSpeed = 1.1f * dt;
+        if (camera.moveXAxis != 0) {
+            glm::vec3 right = glm::normalize(glm::cross(camera.forward, camera.up));
+            camera.position = camera.position + right * camera.moveXAxis * speed;
         }
+        if (camera.moveZAxis != 0) {
+            camera.position = camera.position - camera.forward * camera.moveZAxis * speed;
+        }
+        if (camera.rotAboutUpAxis > 0.1f || camera.rotAboutUpAxis < 0.1f) {
+            camera.forward = glm::normalize(glm::rotate(camera.forward, rotSpeed * camera.rotAboutUpAxis, glm::vec3(0, 1, 0)));   
+            camera.up = glm::normalize(glm::rotate(camera.up, rotSpeed * camera.rotAboutUpAxis, glm::vec3(0, 1, 0)));   
+        }
+        if (camera.rotAboutLeftAxis > 0.1f || camera.rotAboutLeftAxis < 0.1f) {
+            glm::vec3 left = glm::normalize(glm::cross(camera.up, camera.forward));
+            camera.up = glm::normalize(glm::rotate(camera.up, rotSpeed * camera.rotAboutLeftAxis, left));
+            camera.forward = glm::normalize(glm::cross(left, camera.up));
+        }
+        glm::vec3 lookAtCenter = camera.position + camera.forward * 10.0f;
+        glm::mat4 cameraMatrix = glm::lookAt(camera.position, lookAtCenter, camera.up);
+        
+        // Update particles on GPU
+        updateParticlesOnGPU(ps, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, dt); // updates particle system
 
-        glm::vec3 lookAtCenter = cameraPosition + cameraForward * 1.0f;
-        glm::mat4 camera = glm::lookAt(cameraPosition, lookAtCenter, cameraUp);
-        renderBox(b, shaderProgram, particleShader, camera, perspective); // updates particle system
-
-        renderInstanced(b, shaderProgramInstanced, camera, perspective); // Renders particles
 
 
+        // Render ground
+        
+        glViewport(0, 0, shadow_width, shadow_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, fboDepth.fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        simpleBox2.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix);
+        simpleBox3.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix);
 
 
-        // renderParticle(p, shaderProgram, camera, perspective);
+        
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        simpleBox2.render(shaderProgram, perspective, cameraMatrix);
+        simpleBox3.render(shaderProgram, perspective, cameraMatrix);
+        simpleQuad.render(shaderProgram, orthoProjection, identity);
 
-        // updateParticleSystem(system, particleShader, shaderProgram);
 
-        t += 0.001f;
-        //b.position.x = sin(t); 
-        b.scale.x = 1;
+        glEnable(GL_BLEND);
+glDepthMask(GL_FALSE);
+glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        renderInstanced(ps, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
 
+
+        
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
