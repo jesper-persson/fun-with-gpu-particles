@@ -13,11 +13,27 @@ uniform sampler2D velocityTexture;
 uniform sampler2D initialPositionTexture;
 uniform sampler2D initialVelocityTexture; 
 
+uniform sampler3D forceFieldTexture;
+
 uniform float dt; 
 uniform sampler2D texDepth;
 uniform mat4 toLightSpace;
 
 in vec2 texture_out;
+
+
+// Map world coordinate of particles to a 3d vector field texel
+float fieldLower = -3;
+float fieldUpper = 3;
+float fieldSize = fieldUpper - fieldLower;
+// Each vec4 is a column.
+mat4 toForceTextureCoordinates =  (mat4(vec4(1/fieldSize, 0, 0, 0), vec4(0, 1/fieldSize, 0, 0), vec4(0, 0, -1/fieldSize, 0), vec4(-fieldLower/fieldSize, -fieldLower/fieldSize, fieldLower/fieldSize, 0)));
+vec4 vectorFieldForce(vec4 position) {
+    vec3 vectorFieldTextureCoord = vec3( (toForceTextureCoordinates * vec4(position.xyz, 1)).xyz );
+    vec4 force = texture(forceFieldTexture, vectorFieldTextureCoord);
+    force.w = 0;
+    return force;
+}
 
 void main() {
     vec4 velocity = texture(velocityTexture, vec2(texture_out));
@@ -29,21 +45,29 @@ void main() {
     vec4 newPosition = oldPosition + velocity * dt;
     newPositionTexture = newPosition;
 
-    vec4 netForce = vec4(0, -20.0, 0, 0);
-    newVelocityTexture = velocity + netForce * dt;
+    vec4 netForce = vectorFieldForce(newPosition);
 
+    vec4 airResistance = vec4(0, 0, 0, 0);
+    if (length(velocity) > 0.1) {
+        airResistance = normalize(velocity) * -1 * length(velocity) * length(velocity) ;
+    }
+
+    netForce = netForce + airResistance;
+
+    newVelocityTexture = velocity + netForce * dt;
 
     // Depth texture collision detection and response
     vec4 lightCoord = toLightSpace * vec4(newPosition.xyz, 1);
     vec3 projCoord = lightCoord.xyz / lightCoord.w;
     projCoord = projCoord * 0.5 + 0.5;
     vec4 texDepthV = texture(texDepth, projCoord.xy);
-    if (projCoord.z >= texDepthV.r) { // 0.74
-        //newPosition = oldPosition;
-        //newPositionTexture = newPosition;
+    float bias = 0.001;
+    if (projCoord.z + bias > texDepthV.r) { // 0.74
+        newPosition = oldPosition;
+        newPositionTexture = newPosition;
 
         vec4 hej = vec4(projCoord.xyz, 1);
-        hej.z = texDepthV.r;
+        hej.z = projCoord.z;
         hej = (hej - 0.5) / 0.5;
         hej = vec4((hej * lightCoord.w).xyz, lightCoord.w);
         vec4 back = inverse(toLightSpace) * hej;
@@ -70,11 +94,13 @@ void main() {
         } else {
 
         }
+
+        newVelocityTexture = vec4(0,0,0,0);
     }
 
     // Limit max speed
-    if (length(newVelocityTexture) > 0.5) {
-        newVelocityTexture = normalize(velocity) * 0.5;
+    if (length(newVelocityTexture) > 2.5) {
+        newVelocityTexture = normalize(velocity) * 2.5;
     }
 
     // Respawn

@@ -6,11 +6,13 @@ public:
     GLuint vao;
     GLuint indexBuffer;
     GLuint textureId;
+    int textureScale;
 
     SimpleBox() {
         position = glm::vec3(0, 0, 0);
         scale = glm::vec3(1, 1, 1);
         rotation = glm::mat4(1.0f);
+        textureScale = 1;
 
         textureId = genTextureForBox();
         createVAO();
@@ -20,22 +22,32 @@ public:
     void createVAO();
     void createIndexBuffer();
     GLuint genTextureForBox();
-    void render(GLuint shader, glm::mat4 projection, glm::mat4 camera);
+    void render(GLuint shader, glm::mat4 projection, glm::mat4 camera, glm::mat4 toLightSpace, GLuint depthTexture);
 };
 
-void SimpleBox::render(GLuint shaderProgram, glm::mat4 projection, glm::mat4 camera) {
+void SimpleBox::render(GLuint shaderProgram, glm::mat4 projection, glm::mat4 camera, glm::mat4 toLightSpace, GLuint depthTexture) {
     glUseProgram(shaderProgram);
 
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), this->scale);
     glm::mat4 modelToWorld = translate * rotation * scale;
-    glm::mat4 modelToClip = projection * camera * modelToWorld;
+    // glm::mat4 modelToClip = projection * camera * modelToWorld;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelToWorld"), 1, GL_FALSE, glm::value_ptr(modelToClip));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "toLightSpace"), 1, GL_FALSE, glm::value_ptr(toLightSpace));
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthTexture);
+    glUniform1i(glGetUniformLocation(shaderProgram, "depthTexture"), 1);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "textureScale"), this->textureScale);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelToWorld"), 1, GL_FALSE, glm::value_ptr(modelToWorld));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "worldToView"), 1, GL_FALSE, glm::value_ptr(camera));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -134,6 +146,38 @@ void SimpleBox::createVAO() {
         0.0f, 0.0f,  0.0f,
     };
 
+    float normals[] = {
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+    };
+
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -153,6 +197,14 @@ void SimpleBox::createVAO() {
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, vboTex);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    GLuint vboNormals = 0;
+    glGenBuffers(1, &vboNormals);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 24 * sizeof(float), normals, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     this->vao = vao;
 }

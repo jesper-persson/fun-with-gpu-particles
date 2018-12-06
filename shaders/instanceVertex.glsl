@@ -11,6 +11,8 @@ uniform int textureSize;
 uniform sampler2D tex;
 
 out vec2 texture_out;
+out vec3 normal_out;
+out vec3 frag_out;
 
 void main() {
     texture_out = texture.xy;
@@ -34,6 +36,7 @@ void main() {
     faceCamera[3][2] = 0;
 
     mat4 modelToView = view * translationNew  * inverse(faceCamera) * scale;
+
 
     gl_Position = perspective * modelToView * vec4(pos, 1);
 }

@@ -97,7 +97,7 @@ GLuint createShaderProgram(string vertexSourcePath, string fragmentSourcePath) {
 }
 
 struct Camera {
-    glm::vec3 position = glm::vec3(0, 0, 0.9f);
+    glm::vec3 position = glm::vec3(0, 0, 2.9f);
     glm::vec3 up = glm::vec3(0, 1, 0);
     glm::vec3 forward = glm::vec3(0, 0, -1.0f);
     float rotAboutUpAxis = 0;
@@ -180,13 +180,14 @@ int main() {
     glewInit();
 
     GLuint shaderProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragment.glsl");
-    GLuint shaderProgramDepth = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragmentDepth.glsl");
+    GLuint phongShader = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\phongFragment.glsl");
+    GLuint shaderProgramDepth = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\fragmentDepth.glsl");
     GLuint particleShader = createShaderProgram("shaders\\vertex.glsl", "shaders\\particleFragment.glsl");
     GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragment.glsl");
     GLuint shaderProgramInstancedDepth = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragmentDepth.glsl");
     
-    ParticleSystem ps{100000};
-    ps.scale = glm::vec3(0.006f, 0.006f, 1.0f);
+    ParticleSystem ps{30000};
+    ps.scale = glm::vec3(0.009f, 0.009f, 1.0f);
     ps.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);
@@ -199,24 +200,33 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     SimpleBox simpleBox{};
-    SimpleBox simpleBox2{};
+    SimpleBox ground{};
     SimpleBox simpleBox3{};
+
     simpleBox.position.y = -2.0f;
     simpleBox.position.z = -0.3f;
     simpleBox.position.x = -0.3f;
     simpleBox.scale = glm::vec3(0.4f, 0.2f, 0.2f);
-    simpleBox2.position.z = 0.0f;
-    simpleBox2.position.y = -5.0f;
-    simpleBox2.position.x = 0.0f;
-    simpleBox2.scale = glm::vec3(5.0f, 0.2f, 5.0f);
-    simpleBox2.rotation = glm::eulerAngleZ(3.14/4.0f);
+    ground.position.z = 0.0f;
+    ground.position.y = -3.5f;
+    ground.position.x = 0.0f;
+    ground.scale = glm::vec3(5.0f, 0.2f, 5.0f);
+    ground.rotation = glm::eulerAngleZ(0.04f);
+    ground.textureScale = 1;
 
-    simpleBox3.position = glm::vec3(-0.0f, -1.0f, 0.0f);
-    simpleBox3.scale = glm::vec3(0.8f, 0.2f, 0.8f);
-    simpleBox3.rotation = glm::eulerAngleZ(-3.14/15.0f);
+    simpleBox3.position = glm::vec3(-0.0f, 0.5f, 0.0f);
+    simpleBox3.scale = glm::vec3(0.8f, 0.04f, 0.8f);
+    simpleBox3.rotation = glm::eulerAngleZ(-3.14/4.0f);
 
-    simpleBox3.textureId = loadPNGTexture("images/ground.png");
-    simpleBox2.textureId = loadPNGTexture("images/ground.png");
+    SimpleBox simpleBox4{};
+    simpleBox4.position = glm::vec3(0.8f, -1.0f, 0.0f);
+    simpleBox4.scale = glm::vec3(0.8f, 0.04f, 0.8f);
+    simpleBox4.rotation = glm::eulerAngleZ(3.14/4.0f);
+    simpleBox4.textureId = loadPNGTexture("images/blue.png");
+
+
+    simpleBox3.textureId = loadPNGTexture("images/blue.png");
+    ground.textureId = loadPNGTexture("images/blue.png");
     
 
     DepthFBO fboDepth = createFBOForDepth();
@@ -234,6 +244,9 @@ int main() {
     glm::mat4 toLightSpace = orthoProjectionDepth * depthCameraMatrix;
 
     glfwSwapInterval(0);
+
+    glEnable(GL_TEXTURE_3D);
+  
 
     double previousTimeFPS = glfwGetTime();
     double previousTime = glfwGetTime();
@@ -290,21 +303,21 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, fboDepth.fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        simpleBox2.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix);
-        simpleBox3.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix);
-
-
+        ground.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
+        simpleBox3.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
+        simpleBox4.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
         
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        simpleBox2.render(shaderProgram, perspective, cameraMatrix);
-        simpleBox3.render(shaderProgram, perspective, cameraMatrix);
+        ground.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
+        simpleBox3.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
+        simpleBox4.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
         simpleQuad.render(shaderProgram, orthoProjection, identity);
 
 
         glEnable(GL_BLEND);
-glDepthMask(GL_FALSE);
-glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         renderInstanced(ps, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);

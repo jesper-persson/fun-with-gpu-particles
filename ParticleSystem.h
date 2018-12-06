@@ -3,9 +3,83 @@
 #include "glew.h"
 #include "glm/vec3.hpp"
 
-float randomBetween(int min, int max) {
-    return (rand() / (float)RAND_MAX) * (max-min) + min;
+// numDecimals = 0 means we generate integers.
+// numDecimals = 1 means we generate with one decimal.
+float randomBetween(int min, int max, int numDecimals = 0) {
+    int multiplier = pow(10, numDecimals);
+    max = max * multiplier;
+    min = min * multiplier;
+    float num = (rand() / (float)RAND_MAX) * (max-min) + min;
+    return num / multiplier;
 }
+
+GLuint createTextureForForceField() {
+    GLuint textureId;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_3D, textureId);
+
+    const int depth = 2;
+    const int width = 2;
+    const int height = 2;
+
+    const int length = width * height * depth * 4 ;
+    GLfloat pixels[length];
+
+    for (int i = 0; i < length; i += 4) {
+        pixels[i] = 0;
+        pixels[i + 1] = 0;
+        pixels[i + 2] = 0;
+        pixels[i + 3] = 0;
+    }
+
+    float speed = 1.0f;
+    pixels[0] = speed;
+    pixels[0 + 1] = 0;
+    pixels[0 + 2] = 0;
+    pixels[0 + 3] = 0;
+
+    pixels[4] = -speed/4.0f;
+    pixels[4 + 1] = speed;
+    pixels[4 + 2] = 0;
+    pixels[4 + 3] = 0;
+
+    pixels[8] = 0;
+    pixels[8 + 1] = -speed;
+    pixels[8 + 2] = 0;
+    pixels[8 + 3] = 0;
+
+    pixels[12] = -speed;
+    pixels[12 + 1] = 0;
+    pixels[12 + 2] = 0;
+    pixels[12 + 3] = 0;
+
+    pixels[16] = speed;
+    pixels[16 + 1] = 0;
+    pixels[16 + 2] = 0;
+    pixels[16 + 3] = 0;
+
+    pixels[20] = 0;
+    pixels[20 + 1] = speed;
+    pixels[20 + 2] = 0;
+    pixels[20 + 3] = 0;
+
+    pixels[24] = 0;
+    pixels[24 + 1] = -speed;
+    pixels[24 + 2] = 0;
+    pixels[24 + 3] = 0;
+
+    pixels[28] = 0;
+    pixels[28 + 1] = -speed;
+    pixels[28 + 2] = 0;
+    pixels[28 + 3] = 0;
+
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, &pixels[0]);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    return textureId;   
+}
+
 
 // Helper function to create texture of given size and data.
 GLuint genTextureWithData(const int width, const int height, float *data) {
@@ -53,9 +127,9 @@ GLuint genVelocityTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-10, 10) / 50.0f;
-        pixels[i + 1] = -randomBetween(1, 10) / 20.0f;;
-        pixels[i + 2] = randomBetween(-10, 10) / 50.0f;
+        pixels[i] = randomBetween(-1, 1, 8) / 5.0f * 0;
+        pixels[i + 1] = -randomBetween(0, 1, 8) / 3.0f * 0;
+        pixels[i + 2] = randomBetween(-1, 1, 8) / 5.0f * 0; 
         pixels[i + 3] = 0;
     }
 
@@ -69,10 +143,10 @@ GLuint genPositionTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-10, 10) / 5.0f;
-        pixels[i + 1] = randomBetween(-10, 10) / 100.0f;
-        pixels[i + 2] = randomBetween(-10, 10) / 5.0f;
-        pixels[i + 3] = randomBetween(10, 100) / 5.0f; // Time alive
+        pixels[i] = randomBetween(-3, -2, 8) / 1.0f;
+        pixels[i + 1] = randomBetween(-3, -2, 2);
+        pixels[i + 2] = randomBetween(3,2, 8) / 1.0f;
+        pixels[i + 3] = randomBetween(2, 10, 1) * 100.0f;
     }
 
     return genTextureWithData(w, h, pixels);
@@ -204,6 +278,8 @@ public:
     int numParticles;
     int sqrtNumParticles;
 
+    GLuint forceFieldTexture;
+
     ParticleSystem(int numParticles) {
         this->sqrtNumParticles = sqrt(numParticles);
         this->numParticles = this->sqrtNumParticles * this->sqrtNumParticles;
@@ -220,6 +296,8 @@ public:
         colorTexture = genWhiteTexture();
 
         particleSystem = createFrameBufferForParticles(sqrtNumParticles);
+
+        forceFieldTexture = createTextureForForceField();
     }
 };
 
@@ -256,7 +334,6 @@ void updateParticlesOnGPU(ParticleSystem& b, GLuint shaderProgramParticle, glm::
     glBindTexture(GL_TEXTURE_2D, b.initialVelocity);
     glUniform1i(glGetUniformLocation(shaderProgramParticle, "initialVelocityTexture"), 2);
 
-
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, b.initialPosition);
     glUniform1i(glGetUniformLocation(shaderProgramParticle, "initialPositionTexture"), 3);
@@ -265,11 +342,14 @@ void updateParticlesOnGPU(ParticleSystem& b, GLuint shaderProgramParticle, glm::
     glBindTexture(GL_TEXTURE_2D, depthTextureId);
     glUniform1i(glGetUniformLocation(shaderProgramParticle, "texDepth"), 4);
 
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_3D, b.forceFieldTexture);
+    glUniform1i(glGetUniformLocation(shaderProgramParticle, "forceFieldTexture"), 5);
+
     glUniform1f(glGetUniformLocation(shaderProgramParticle, "dt"), dt);
 
     glBindVertexArray(b.vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, b.position, 0);
     GLuint temp = b.position;
@@ -336,9 +416,11 @@ DepthFBO createFBOForDepth() {
     GLuint depthTexture;
     glGenTextures(1, &depthTexture);
     glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, shadow_width, shadow_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadow_width, shadow_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -355,3 +437,4 @@ DepthFBO createFBOForDepth() {
     fbo.texture = depthTexture;
     return fbo;
 }
+
