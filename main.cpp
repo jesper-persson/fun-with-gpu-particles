@@ -17,8 +17,10 @@
 const int WINDOW_WIDTH = 1500;
 const int WINDOW_HEIGHT = 1200;
 
+
 #include "ParticleSystem.h"
 #include "simpleBox.h"
+#include "accumulatedSnow.h"
 #include "simpleQuad.h"
 #include "common.hpp"
 
@@ -180,15 +182,19 @@ int main() {
     glewInit();
 
     GLuint shaderProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragment.glsl");
+    GLuint snowProgram = createShaderProgram("shaders\\snowVertex.glsl", "shaders\\snowFragment.glsl");
     GLuint phongShader = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\phongFragment.glsl");
     GLuint shaderProgramDepth = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\fragmentDepth.glsl");
     GLuint particleShader = createShaderProgram("shaders\\vertex.glsl", "shaders\\particleFragment.glsl");
     GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragment.glsl");
     GLuint shaderProgramInstancedDepth = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragmentDepth.glsl");
     
-    ParticleSystem ps{30000};
+    ParticleSystem ps{100000};
     ps.scale = glm::vec3(0.009f, 0.009f, 1.0f);
     ps.colorTexture = loadPNGTexture("images/snow2.png");
+    ParticleSystem ps2{100000};
+    ps2.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps2.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);
 
@@ -221,12 +227,14 @@ int main() {
     SimpleBox simpleBox4{};
     simpleBox4.position = glm::vec3(0.8f, -1.0f, 0.0f);
     simpleBox4.scale = glm::vec3(0.8f, 0.04f, 0.8f);
-    simpleBox4.rotation = glm::eulerAngleZ(3.14/4.0f);
+    simpleBox4.rotation = glm::eulerAngleZ(3.14/3.0f);
     simpleBox4.textureId = loadPNGTexture("images/blue.png");
 
 
     simpleBox3.textureId = loadPNGTexture("images/blue.png");
     ground.textureId = loadPNGTexture("images/blue.png");
+    GLuint whiteTexture = loadPNGTexture("images/white.png");
+    GLuint snowOffset = loadPNGTexture("images/snowOffset.png");
     
 
     DepthFBO fboDepth = createFBOForDepth();
@@ -253,6 +261,17 @@ int main() {
     int frameCounter = 0;
     float dt = 0.16f;
 
+    int iteration = 0;
+
+    SnowMesh snowMesh;
+
+    GLuint ssbo;
+    glGenBuffers(1, &ssbo);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 1024*1024 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+
+
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(95/255.0f, 111/255.0f, 119/255.0f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -269,6 +288,12 @@ int main() {
             previousTimeFPS = currentTime;
         }
         frameCounter++;
+
+        // We build the snow mesh at the second iteration, since at iteration 0
+        // the depth buffer has not been written to.
+        if (iteration == 1) {
+            snowMesh = buildMesh(fboDepth.fbo, fboDepth.texture, glm::vec3());
+        }
         
         // Camera movement
         float speed = 1.1f * dt;
@@ -294,11 +319,11 @@ int main() {
         
         // Update particles on GPU
         updateParticlesOnGPU(ps, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, dt); // updates particle system
+        updateParticlesOnGPU(ps2, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, dt); // updates particle system
 
 
 
-        // Render ground
-        
+        // begin render depth
         glViewport(0, 0, shadow_width, shadow_height);
         glBindFramebuffer(GL_FRAMEBUFFER, fboDepth.fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -309,16 +334,32 @@ int main() {
         
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // end render depth
+
+
+
+
+
         ground.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
         simpleBox3.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
         simpleBox4.render(phongShader, perspective, cameraMatrix, toLightSpace, fboDepth.texture);
         simpleQuad.render(shaderProgram, orthoProjection, identity);
+
+        if (iteration > 1) {
+            glEnable(GL_BLEND);
+           glBlendFunc (GL_ONE, GL_ONE);
+            glDepthMask(GL_FALSE);
+            renderSnowMesh(snowMesh, whiteTexture, snowOffset, snowProgram, toLightSpace, perspective, cameraMatrix);
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+        }
 
 
         glEnable(GL_BLEND);
         glDepthMask(GL_FALSE);
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         renderInstanced(ps, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
+        renderInstanced(ps2, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
 
@@ -326,6 +367,7 @@ int main() {
         
         glfwPollEvents();
         glfwSwapBuffers(window);
+        iteration++;
     }
 
     glfwTerminate();

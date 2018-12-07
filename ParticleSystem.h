@@ -127,9 +127,9 @@ GLuint genVelocityTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-1, 1, 8) / 5.0f * 0;
-        pixels[i + 1] = -randomBetween(0, 1, 8) / 3.0f * 0;
-        pixels[i + 2] = randomBetween(-1, 1, 8) / 5.0f * 0; 
+        pixels[i] = randomBetween(-1, 1, 8) / 5.0f * 1;
+        pixels[i + 1] = randomBetween(-2, -1, 8) / 2.0f;
+        pixels[i + 2] = randomBetween(-1, 1, 8) / 5.0f * 1; 
         pixels[i + 3] = 0;
     }
 
@@ -143,10 +143,10 @@ GLuint genPositionTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-3, -2, 8) / 1.0f;
-        pixels[i + 1] = randomBetween(-3, -2, 2);
-        pixels[i + 2] = randomBetween(3,2, 8) / 1.0f;
-        pixels[i + 3] = randomBetween(2, 10, 1) * 100.0f;
+        pixels[i] = randomBetween(-3, 3, 8) / 10.0f;
+        pixels[i + 1] = randomBetween(2, 5, 2);
+        pixels[i + 2] = randomBetween(-3,3, 8) / 10.0f;
+        pixels[i + 3] = randomBetween(2, 10, 1);
     }
 
     return genTextureWithData(w, h, pixels);

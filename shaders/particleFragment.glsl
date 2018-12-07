@@ -1,4 +1,4 @@
-#version 400
+#version 430
 
 layout(location = 0) out vec4 newPositionTexture;
 layout(location = 1) out vec4 newVelocityTexture;
@@ -22,6 +22,12 @@ uniform mat4 toLightSpace;
 in vec2 texture_out;
 
 
+layout (std430, binding=2) buffer collision_data
+{
+    float numCollisions[];
+};
+
+
 // Map world coordinate of particles to a 3d vector field texel
 float fieldLower = -3;
 float fieldUpper = 3;
@@ -35,9 +41,17 @@ vec4 vectorFieldForce(vec4 position) {
     return force;
 }
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main() {
+    
+
     vec4 velocity = texture(velocityTexture, vec2(texture_out));
+    float hasCollided = velocity.w;
     velocity.w = 0;
+
 
     vec4 oldPosition = texture(positionTexture, vec2(texture_out));
     float timeLeft = oldPosition.w - dt;
@@ -45,16 +59,19 @@ void main() {
     vec4 newPosition = oldPosition + velocity * dt;
     newPositionTexture = newPosition;
 
-    vec4 netForce = vectorFieldForce(newPosition);
+    // vec4 netForce = vectorFieldForce(newPosition);
 
     vec4 airResistance = vec4(0, 0, 0, 0);
-    if (length(velocity) > 0.1) {
-        airResistance = normalize(velocity) * -1 * length(velocity) * length(velocity) ;
+    if (length(velocity) > 0.001) {
+        float airResitanceCoef = 0.0f;
+        airResistance = normalize(velocity) * -1 * airResitanceCoef * length(velocity) * length(velocity);
     }
 
-    netForce = netForce + airResistance;
+    vec4 gravity = vec4(0, -5, 0, 0);
 
+    vec4 netForce = vec4(0, 0, 0, 0);
     newVelocityTexture = velocity + netForce * dt;
+    newVelocityTexture.w = hasCollided;
 
     // Depth texture collision detection and response
     vec4 lightCoord = toLightSpace * vec4(newPosition.xyz, 1);
@@ -62,7 +79,7 @@ void main() {
     projCoord = projCoord * 0.5 + 0.5;
     vec4 texDepthV = texture(texDepth, projCoord.xy);
     float bias = 0.001;
-    if (projCoord.z + bias > texDepthV.r) { // 0.74
+    if (projCoord.z + bias > texDepthV.r && hasCollided < 0.9) { // 0.74
         newPosition = oldPosition;
         newPositionTexture = newPosition;
 
@@ -95,18 +112,38 @@ void main() {
 
         }
 
-        newVelocityTexture = vec4(0,0,0,0);
+
+        newVelocityTexture = vec4(0,0,0,1);
+
+
+        int mappedX = int(projCoord.x * 1024); 
+        int mappedY = int(projCoord.y * 1024); 
+        numCollisions[mappedY * 1024 + mappedX] += + 0.5;
+
+        // "Low pass filter"
+        numCollisions[mappedY * 1024 + mappedX - 1] += 0.25;
+        numCollisions[mappedY * 1024 + mappedX + 1] += 0.25;
+        numCollisions[mappedY * 1024 + 1024 + mappedX] += 0.25;
+        numCollisions[mappedY * 1024 - 1024 + mappedX] += 0.25;        
+
+        numCollisions[mappedY * 1024 + mappedX - 1 - 1024] += 0.25;
+        numCollisions[mappedY * 1024 + mappedX - 1 + 1024] += 0.25;
+        numCollisions[mappedY * 1024 + mappedX + 1 - 1024] += 0.25;
+        numCollisions[mappedY * 1024 + mappedX + 1 + 1024] += 0.25;
     }
 
     // Limit max speed
-    if (length(newVelocityTexture) > 2.5) {
-        newVelocityTexture = normalize(velocity) * 2.5;
-    }
+    // if (length(newVelocityTexture) > 2.5) {
+    //     newVelocityTexture = normalize(velocity) * 2.5;
+    // }
 
     // Respawn
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
+        newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
+        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5;
+        newVelocityTexture.w = 0;
     }
 }
