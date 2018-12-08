@@ -3,6 +3,8 @@
 #include "glew.h"
 #include "glm/vec3.hpp"
 
+extern int depthSize;
+
 // numDecimals = 0 means we generate integers.
 // numDecimals = 1 means we generate with one decimal.
 float randomBetween(int min, int max, int numDecimals = 0) {
@@ -143,9 +145,9 @@ GLuint genPositionTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-3, 3, 8) / 10.0f;
+        pixels[i] = randomBetween(-3, 3, 8) / 1.0f;
         pixels[i + 1] = randomBetween(2, 5, 2);
-        pixels[i + 2] = randomBetween(-3,3, 8) / 10.0f;
+        pixels[i + 2] = randomBetween(-3,3, 8) / 1.0f;
         pixels[i + 3] = randomBetween(2, 10, 1);
     }
 
@@ -405,8 +407,6 @@ struct DepthFBO {
     GLuint texture;
 };
 
-const int shadow_width = 1024; // Change in particleFragment too
-const int shadow_height = 1024; // Change in particleFragment too
 
 DepthFBO createFBOForDepth() {
     GLuint fboId = 0;
@@ -416,7 +416,7 @@ DepthFBO createFBOForDepth() {
     GLuint depthTexture;
     glGenTextures(1, &depthTexture);
     glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadow_width, shadow_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, depthSize, depthSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -438,3 +438,37 @@ DepthFBO createFBOForDepth() {
     return fbo;
 }
 
+
+ParticleSystemFBO createFrameBufferSingleTexture(int textureSize) {
+    GLuint fbo = 0;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    GLuint renderedTexture;
+    {
+        glGenTextures(1, &renderedTexture);
+        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
+        const int w = textureSize;
+        const int h = textureSize;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+    }
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Could not create frame buffer" << std::endl;
+    }
+
+    ParticleSystemFBO ParticleSystemFBO{};
+    ParticleSystemFBO.fbo = fbo;
+    ParticleSystemFBO.outputPositionTexture = renderedTexture;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return ParticleSystemFBO;
+}

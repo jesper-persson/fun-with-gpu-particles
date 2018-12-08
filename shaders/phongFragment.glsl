@@ -14,7 +14,7 @@ out vec4 out_color;
 
 void main() {
     // Lighting
-    float ambient = 0.2;
+    float ambient = 0.5;
     vec3 lightPositionWS = vec3(0, 4, 0); // Must be synced with main.cpp "light"
     vec3 dirToLight = normalize(lightPositionWS - frag_out);
     float intensity = max(dot(dirToLight, normalize(normal_out)), 0.0) + ambient;
@@ -26,7 +26,7 @@ void main() {
     vec4 texDepthV = texture(depthTexture, projCoord.xy);
     float bias = 0.005;
     if (projCoord.z - bias > texDepthV.r) {
-        intensity *= 0.4;
+        intensity *= 0.5;
     }   
 
     vec4 textureSample = texture(tex1, vec2(texture_out * textureScale)).xyzw;

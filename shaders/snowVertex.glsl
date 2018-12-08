@@ -18,8 +18,12 @@ layout (std430, binding=2) buffer collision_data
 };
 
 out float num_collisions_out;
+out float isEdge;
 
+out vec3 frag_out;
 out vec2 texture_out;
+
+int depthSize = 2048;
 
 void main() {
     texture_out = texture.xy;
@@ -33,13 +37,19 @@ void main() {
     vec4 offset = texture(snowOffsetTexture, projCoord.xy);
 
 
-    int mappedX = int(projCoord.x * 1024); 
-    int mappedY = int(projCoord.y * 1024); 
+    int mappedX = int(projCoord.x * depthSize); 
+    int mappedY = int(projCoord.y * depthSize); 
     
     if (pos.w >= 0.5) {
-        worldCoord.y += numCollisions[mappedY * 1024 + mappedX] / 1000.0f;
-        num_collisions_out = float(numCollisions[mappedY * 1024 + mappedX]);
-    } 
+        worldCoord.y += numCollisions[mappedY * depthSize + mappedX] / 200.0f;
+        num_collisions_out = float(numCollisions[mappedY * depthSize + mappedX]);
+    }  else {
+        num_collisions_out = float(numCollisions[mappedY * depthSize + mappedX]);
+    }
+
+    isEdge = pos.w;
+
+    frag_out = worldCoord.xyz;
 
     gl_Position = projection * worldToView * worldCoord;
 }

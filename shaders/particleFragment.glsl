@@ -79,7 +79,7 @@ void main() {
     projCoord = projCoord * 0.5 + 0.5;
     vec4 texDepthV = texture(texDepth, projCoord.xy);
     float bias = 0.001;
-    if (projCoord.z + bias > texDepthV.r && hasCollided < 0.9) { // 0.74
+    if (projCoord.z + bias > texDepthV.r && hasCollided < 0.9 && projCoord.z - 0.0001 < texDepthV.r ) { // 0.74
         newPosition = oldPosition;
         newPositionTexture = newPosition;
 
@@ -93,8 +93,8 @@ void main() {
         newPositionTexture.w = newPosition.w;
         newVelocityTexture = velocity;
 
-        float shadow_width = 1024;
-        float dh = 1.0/shadow_width;
+        int depthSize = 2048;
+        float dh = 1.0/float(depthSize);
 
         float dx = (texture(texDepth, vec2(projCoord.x + dh, projCoord.y)).r - texture(texDepth, vec2(projCoord.x - dh, projCoord.y)).r)/(2*dh);
         float dy = (texture(texDepth, vec2(projCoord.x, projCoord.y + dh)).r - texture(texDepth, vec2(projCoord.x, projCoord.y - dh)).r)/(2*dh);
@@ -116,20 +116,20 @@ void main() {
         newVelocityTexture = vec4(0,0,0,1);
 
 
-        int mappedX = int(projCoord.x * 1024); 
-        int mappedY = int(projCoord.y * 1024); 
-        numCollisions[mappedY * 1024 + mappedX] += + 0.5;
+        int mappedX = int(projCoord.x * depthSize); 
+        int mappedY = int(projCoord.y * depthSize); 
+        numCollisions[mappedY * depthSize + mappedX] += + 0.5;
 
         // "Low pass filter"
-        numCollisions[mappedY * 1024 + mappedX - 1] += 0.25;
-        numCollisions[mappedY * 1024 + mappedX + 1] += 0.25;
-        numCollisions[mappedY * 1024 + 1024 + mappedX] += 0.25;
-        numCollisions[mappedY * 1024 - 1024 + mappedX] += 0.25;        
+        numCollisions[mappedY * depthSize + mappedX - 1] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX + 1] += 0.25;
+        numCollisions[mappedY * depthSize + depthSize + mappedX] += 0.25;
+        numCollisions[mappedY * depthSize - depthSize + mappedX] += 0.25;        
 
-        numCollisions[mappedY * 1024 + mappedX - 1 - 1024] += 0.25;
-        numCollisions[mappedY * 1024 + mappedX - 1 + 1024] += 0.25;
-        numCollisions[mappedY * 1024 + mappedX + 1 - 1024] += 0.25;
-        numCollisions[mappedY * 1024 + mappedX + 1 + 1024] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX - 1 - depthSize] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX - 1 + depthSize] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX + 1 - depthSize] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX + 1 + depthSize] += 0.25;
     }
 
     // Limit max speed
