@@ -183,8 +183,10 @@ int main() {
 
     glewInit();
 
+ printf("OpenGL version supported by this platform (%s): \n", glGetString(GL_VERSION));
     GLuint shaderProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\fragment.glsl");
     GLuint lowPassProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\lowpassFragment.glsl");
+    GLuint realLowPassProgram = createShaderProgram("shaders\\vertex.glsl", "shaders\\realLowPass.glsl");
     GLuint snowProgram = createShaderProgram("shaders\\snowVertex.glsl", "shaders\\snowFragment.glsl");
     GLuint phongShader = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\phongFragment.glsl");
     GLuint shaderProgramDepth = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\fragmentDepth.glsl");
@@ -200,6 +202,12 @@ int main() {
     ParticleSystem ps2{100000};
     ps2.scale = glm::vec3(0.01f, 0.01f, 1.0f);
     ps2.colorTexture = loadPNGTexture("images/snow2.png");
+    ParticleSystem ps3{100000};
+    ps3.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps3.colorTexture = loadPNGTexture("images/snow2.png");
+    ParticleSystem ps4{100000};
+    ps4.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps4.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);
 
@@ -211,14 +219,14 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
 
-    std::vector<float>* heightValues = pngTextureToFloatArray("images/heightmap1.png");
+    std::vector<float>* heightValues = pngTextureToFloatArray("images/heightmap2.png");
     float* heightArray = &(*heightValues)[0];
-    int size = 225; //sqrt(heightValues->size());
+    int size = 464; //sqrt(heightValues->size());
     Model terrainModel = heightmapToModel(heightArray, size, size, 1.0f, 1.0f, 1.0f, 30.0f);
-    terrainModel.textureId = loadPNGTexture("images/rock.png"); 
-    terrainModel.position = glm::vec3(-5, -5, -5);
+    terrainModel.textureId = loadPNGTexture("images/rock2.png"); 
+    terrainModel.position = glm::vec3(-10, -5, -10);
     terrainModel.scale =glm::vec3(0.1f, 0.02f, 0.1f);
-    terrainModel.textureScale = 3;
+    terrainModel.textureScale = 8;
 
     Model someModel = tinyObjLoader("models/sphere.obj");
     someModel.textureId =  loadPNGTexture("images/blue.png");
@@ -226,8 +234,8 @@ int main() {
     someModel.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
 
     Model cottage = tinyObjLoader("models/cottage.obj");
-    cottage.textureId =  loadPNGTexture("images/blue.png");
-    cottage.position =  glm::vec3(1.0f, -1.3f, 0);
+    cottage.textureId =  loadPNGTexture("images/cottage.png");
+    cottage.position =  glm::vec3(-1.0f, -5.0f, 0);
     cottage.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
     cottage.rotation = glm::eulerAngleY(0.0f);
 
@@ -358,21 +366,20 @@ int main() {
         // Update particles on GPU
         updateParticlesOnGPU(ps, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, normals.outputPositionTexture, dt); // updates particle system
         updateParticlesOnGPU(ps2, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, normals.outputPositionTexture, dt); // updates particle system
-
-
+        updateParticlesOnGPU(ps3, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, normals.outputPositionTexture, dt); // updates particle system
+        updateParticlesOnGPU(ps4, particleShader, cameraMatrix, perspective, toLightSpace, fboDepth.texture, normals.outputPositionTexture, dt); // updates particle system
 
         // ========== begin render depth
+        if (iteration == 0) {
+
         glViewport(0, 0, depthSize, depthSize);
         glBindFramebuffer(GL_FRAMEBUFFER, fboDepth.fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // ground.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
-        // simpleBox3.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
-        // simpleBox4.render(shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, toLightSpace, fboDepth.texture);
-        renderModel(terrainModel, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
-        renderModel(someModel, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
-        renderModel(cottage, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
-        // renderModel(deadTree, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
+            renderModel(terrainModel, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
+            renderModel(someModel, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
+            renderModel(cottage, shaderProgramDepth, orthoProjectionDepth, depthCameraMatrix, fboDepth.texture, toLightSpace);
+        }
 
         // lp
         glViewport(0, 0, depthSize, depthSize);
@@ -399,18 +406,137 @@ int main() {
             quadForNormals.render(shaderCalcNormals, identity, identity);
             quadForNormals.textureId = normals.outputPositionTexture;
 
+            
+
+            glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            
+                        glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
+            quadForNormals.textureId = normals.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
+            quadForNormals.textureId = fboLowPass3.outputPositionTexture;
+            quadForNormals.render(realLowPassProgram, identity, identity);
             // glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
             // quadForNormals.textureId = normals.outputPositionTexture;
             // quadForNormals.render(lowPassProgram, identity, identity);
 
-            // glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
-            // quadForNormals.textureId = fboLowPass3.outputPositionTexture;
-            // quadForNormals.render(lowPassProgram, identity, identity);
-
-            // glBindFramebuffer(GL_FRAMEBUFFER, fboLowPass3.fbo);
-            // quadForNormals.textureId = normals.outputPositionTexture;
-            // quadForNormals.render(lowPassProgram, identity, identity);
-
             // quadForNormals.textureId = fboLowPass3.outputPositionTexture;
 
             // glBindFramebuffer(GL_FRAMEBUFFER, normals.fbo);
@@ -418,8 +544,7 @@ int main() {
 
 
 
-
-           
+           quadForNormals.textureId = normals.outputPositionTexture;
             quadForNormals.scale = glm::vec3(simpleQuadSize,simpleQuadSize,1);
             quadForNormals.position = glm::vec3(WINDOW_WIDTH/2.0f - simpleQuadSize/2.0f, -WINDOW_HEIGHT/2.0f + simpleQuadSize/2.0f, 0);
         
@@ -442,7 +567,7 @@ int main() {
         quadForNormals.textureId = normals.outputPositionTexture;
         quadForNormals.render(shaderProgram, orthoProjection, identity);
        
-        // simpleQuad.render(shaderProgram, orthoProjection, identity);
+        //simpleQuad.render(shaderProgram, orthoProjection, identity);
         renderModel(terrainModel, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
         renderModel(someModel, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
         renderModel(cottage, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
@@ -462,6 +587,8 @@ int main() {
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         renderInstanced(ps, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
         renderInstanced(ps2, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
+        renderInstanced(ps3, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
+        renderInstanced(ps4, shaderProgramInstanced, cameraMatrix, perspective); // Renders particles
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
 

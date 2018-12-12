@@ -122,7 +122,7 @@ void main() {
 
         // newVelocityTexture = vec4(normal * 10, 1);
      
-        float collideValue = 0.5 * normalFactor *  normalFactor* normalFactor;
+        float collideValue = 0.5 * normalFactor *  normalFactor* normalFactor * normalFactor * normalFactor ;
     
 
         int mappedX = int(projCoord.x * depthSize); 
@@ -153,7 +153,8 @@ void main() {
         newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
         newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
-        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 3.5;
+        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5 ;//3.5;
+        //newVelocityTexture.y = newVelocityTexture.y * 2;
         newVelocityTexture.w = 0;
     }
 }

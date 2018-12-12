@@ -2,7 +2,7 @@
 #version 430
 
 layout (location = 0) in vec4 pos;
-layout (location = 1) in vec3 texture;
+layout (location = 1) in vec3 texture1;
 layout (location = 2) in vec3 normal;
 
 uniform mat4 modelToWorld; // Is modelToClip though?
@@ -26,10 +26,12 @@ out vec3 normal_out;
 out vec3 frag_out;
 out vec2 texture_out;
 
+out vec3 camera_pos_out;
+
 int depthSize = 2048;
 
 void main() {
-    texture_out = texture.xy;
+    texture_out = texture1.xy;
 
 
     vec4 worldCoord = modelToWorld * vec4(pos.xyz, 1);
@@ -38,15 +40,19 @@ void main() {
     vec3 projCoord = lightCoord.xyz / lightCoord.w;
     projCoord = projCoord * 0.5 + 0.5;
     vec4 offset = texture(snowOffsetTexture, projCoord.xy);
+    
+    
+    mat4 temp = inverse(worldToView);
+    camera_pos_out = vec3(temp[3][0], temp[3][1], temp[3][2]);
 
-    // normal_out = texture(normalMap, projCoord.xy + vec2(1/float(depthSize)/2, 1/float(depthSize)/2)).xyz;
+    normal_out = texture(normalMap, projCoord.xy + vec2(1/float(depthSize), 1/float(depthSize))).xyz;
     // normal_out = normal;
-     normal_out = mat3(transpose(inverse(modelToWorld))) * normal; 
+    // normal_out = mat3(transpose(inverse(modelToWorld))) * normal; 
 
     int mappedX = int(projCoord.x * depthSize); 
     int mappedY = int(projCoord.y * depthSize); 
 
-        float val = 0;// float(numCollisions[mappedY * depthSize + mappedX]);
+    float val = 10;//float(numCollisions[mappedY * depthSize + mappedX]);
     
     if (pos.w >= 0.5) {
         worldCoord.y += val / 200.0f;

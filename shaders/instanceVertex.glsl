@@ -1,7 +1,7 @@
 #version 400
 
 layout (location = 0) in vec3 pos;
-layout (location = 1) in vec3 texture;
+layout (location = 1) in vec3 texture1;
 
 uniform mat4 translation;
 uniform mat4 scale;
@@ -15,7 +15,7 @@ out vec3 normal_out;
 out vec3 frag_out;
 
 void main() {
-    texture_out = texture.xy;
+    texture_out = texture1.xy;
 
     int texWidth = textureSize;
     int texHeight = textureSize;

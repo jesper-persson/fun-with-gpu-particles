@@ -10,7 +10,7 @@ int depthSize = 2048;
 
 void main(){
 
-    float size = 0.001;
+    float size = 0.0007;
 
     // Calc normal
     float v1 = -texture(depthTexture, texture_out).x;

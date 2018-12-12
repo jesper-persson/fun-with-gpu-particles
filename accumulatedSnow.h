@@ -23,7 +23,7 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint textureId,  GLuint 
 
     glm::vec3 scaleV = glm::vec3(xScale, yScale, xScale);
 
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(-10, -10+0.005f, 10));
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(-10, -10+0.009f, 10));
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), scaleV);
     glm::mat4 rotation = glm::mat4(1.0f);
     glm::mat4 modelToWorld = translate * scale;
@@ -119,9 +119,9 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 				//     normals[(z * width + x) * 3 + 2] = 0;
                 // }
 
-		         normals[(z * width + x) * 3] = normal.x;
-				    normals[(z * width + x) * 3 + 1] = normal.y;
-				    normals[(z * width + x) * 3 + 2] = normal.z;
+		        normals[(z * width + x) * 3] = normal.x;
+				normals[(z * width + x) * 3 + 1] = normal.y;
+				normals[(z * width + x) * 3 + 2] = normal.z;
 			}
         }
     }
@@ -141,10 +141,10 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
                 float heightdiff5 = std::abs(heightmap[vertexIndex + width + 1] - heightmap[vertexIndex]);
                 
                 if (heightdiff5 < limit && heightdiff1 < limit && heightdiff2 < limit && heightdiff3 < limit && heightdiff4 < limit) {
-                    // indices[arrayIndex] = vertexIndex;
-                    // indices[arrayIndex + 1] = vertexIndex + 1;
-                    // indices[arrayIndex + 2] = vertexIndex + width;
-                    // arrayIndex += 3;
+                    indices[arrayIndex] = vertexIndex;
+                    indices[arrayIndex + 1] = vertexIndex + 1;
+                    indices[arrayIndex + 2] = vertexIndex + width;
+                    arrayIndex += 3;
                     indices[arrayIndex] = vertexIndex + 1;
 				    indices[arrayIndex + 1] = vertexIndex + width + 1;
 				    indices[arrayIndex + 2] = vertexIndex + width;

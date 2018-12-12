@@ -44,5 +44,5 @@ void main() {
         out_color = mix(out_color, endColor, a);
     }
     
-    out_color = vec4(normalize(normal_out).xyz, 1);
+    // out_color = vec4(normalize(normal_out).xyz, 1);
 }
