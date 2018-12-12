@@ -15,6 +15,8 @@ uniform sampler2D initialVelocityTexture;
 
 uniform sampler3D forceFieldTexture;
 
+uniform sampler2D normalTexture;
+
 uniform float dt; 
 uniform sampler2D texDepth;
 uniform mat4 toLightSpace;
@@ -112,24 +114,31 @@ void main() {
 
         }
 
-
         newVelocityTexture = vec4(0,0,0,1);
 
+        // Lower collide value based on normals and incoming direction
+        vec3 normal = normalize(texture(normalTexture, projCoord.xy).xyz);
+        float normalFactor = max(0, dot(-normal, vec3(velocity.xyz)));
+
+        // newVelocityTexture = vec4(normal * 10, 1);
+     
+        float collideValue = 0.5 * normalFactor *  normalFactor* normalFactor;
+    
 
         int mappedX = int(projCoord.x * depthSize); 
         int mappedY = int(projCoord.y * depthSize); 
-        numCollisions[mappedY * depthSize + mappedX] += + 0.5;
+        numCollisions[mappedY * depthSize + mappedX] += + collideValue;
 
         // "Low pass filter"
-        numCollisions[mappedY * depthSize + mappedX - 1] += 0.25;
-        numCollisions[mappedY * depthSize + mappedX + 1] += 0.25;
-        numCollisions[mappedY * depthSize + depthSize + mappedX] += 0.25;
-        numCollisions[mappedY * depthSize - depthSize + mappedX] += 0.25;        
+        numCollisions[mappedY * depthSize + mappedX - 1] += collideValue/2;
+        numCollisions[mappedY * depthSize + mappedX + 1] += collideValue/2;
+        numCollisions[mappedY * depthSize + depthSize + mappedX] += collideValue/2;
+        numCollisions[mappedY * depthSize - depthSize + mappedX] += collideValue/2;        
 
-        numCollisions[mappedY * depthSize + mappedX - 1 - depthSize] += 0.25;
-        numCollisions[mappedY * depthSize + mappedX - 1 + depthSize] += 0.25;
-        numCollisions[mappedY * depthSize + mappedX + 1 - depthSize] += 0.25;
-        numCollisions[mappedY * depthSize + mappedX + 1 + depthSize] += 0.25;
+        numCollisions[mappedY * depthSize + mappedX - 1 - depthSize] += collideValue/2;
+        numCollisions[mappedY * depthSize + mappedX - 1 + depthSize] += collideValue/2;
+        numCollisions[mappedY * depthSize + mappedX + 1 - depthSize] += collideValue/2;
+        numCollisions[mappedY * depthSize + mappedX + 1 + depthSize] += collideValue/2;
     }
 
     // Limit max speed
@@ -141,9 +150,10 @@ void main() {
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
+        newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
         newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
-        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5;
+        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 3.5;
         newVelocityTexture.w = 0;
     }
 }

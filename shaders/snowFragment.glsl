@@ -7,15 +7,16 @@ in vec2 texture_out;
 in float num_collisions_out;
 in vec3 frag_out;
 in float isEdge;
+in vec3 normal_out;
 
 out vec4 out_color;
 
 void main() {
 
-    vec3 normal = texture(normalMap, vec2(texture_out * 4)).xyz;
+    vec3 normal = normalize(normal_out); // texture(normalMap, vec2(texture_out * 4)).xyz;
 
     float ambient = 0;
-    vec3 lightPositionWS = vec3(40, 40, 40); // Must be synced with main.cpp "light"
+    vec3 lightPositionWS = vec3(0, 40, 0); // Must be synced with main.cpp "light"
     vec3 dirToLight = normalize(lightPositionWS - frag_out);
     float intensity = max(dot(dirToLight, normalize(normal)), 0.0) + ambient;
 
@@ -28,6 +29,8 @@ void main() {
     } else {
         out_color.w = 0;
     }
+
+    out_color = vec4(normal, 1);
 
     // out_color.r = isEdge;
     // out_color.w = 1;

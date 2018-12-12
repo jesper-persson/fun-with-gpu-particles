@@ -12,10 +12,16 @@ out vec2 texture_out;
 out vec3 normal_out;
 out vec3 frag_out;
 
+out vec3 camera_pos_out;
+
 void main() {
     texture_out = texture.xy;
     normal_out = normal;
     frag_out = vec3(modelToWorld * vec4(position, 1.0));
     normal_out = mat3(transpose(inverse(modelToWorld))) * normal; 
+
+    mat4 temp = inverse(worldToView);
+    camera_pos_out = vec3(temp[3][0], temp[3][1], temp[3][2]);
+
     gl_Position = projection * worldToView * modelToWorld * vec4(position, 1);
 }

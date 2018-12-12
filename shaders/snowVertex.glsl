@@ -3,13 +3,14 @@
 
 layout (location = 0) in vec4 pos;
 layout (location = 1) in vec3 texture;
+layout (location = 2) in vec3 normal;
 
 uniform mat4 modelToWorld; // Is modelToClip though?
 uniform mat4 projection;
 uniform mat4 worldToView;
 
 uniform mat4 toLightSpace;
-
+uniform sampler2D normalMap;
 uniform sampler2D snowOffsetTexture;
 
 layout (std430, binding=2) buffer collision_data
@@ -19,6 +20,8 @@ layout (std430, binding=2) buffer collision_data
 
 out float num_collisions_out;
 out float isEdge;
+
+out vec3 normal_out;
 
 out vec3 frag_out;
 out vec2 texture_out;
@@ -36,15 +39,20 @@ void main() {
     projCoord = projCoord * 0.5 + 0.5;
     vec4 offset = texture(snowOffsetTexture, projCoord.xy);
 
+    // normal_out = texture(normalMap, projCoord.xy + vec2(1/float(depthSize)/2, 1/float(depthSize)/2)).xyz;
+    // normal_out = normal;
+     normal_out = mat3(transpose(inverse(modelToWorld))) * normal; 
 
     int mappedX = int(projCoord.x * depthSize); 
     int mappedY = int(projCoord.y * depthSize); 
+
+        float val = 0;// float(numCollisions[mappedY * depthSize + mappedX]);
     
     if (pos.w >= 0.5) {
-        worldCoord.y += numCollisions[mappedY * depthSize + mappedX] / 200.0f;
-        num_collisions_out = float(numCollisions[mappedY * depthSize + mappedX]);
+        worldCoord.y += val / 200.0f;
+        num_collisions_out = val;
     }  else {
-        num_collisions_out = float(numCollisions[mappedY * depthSize + mappedX]);
+        num_collisions_out = val;
     }
 
     isEdge = pos.w;

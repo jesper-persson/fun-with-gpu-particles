@@ -147,7 +147,7 @@ GLuint genPositionTexture(int textureSize) {
     for (int i = 0; i < length; i += 4) {
         pixels[i] = randomBetween(-3, 3, 8) / 1.0f;
         pixels[i + 1] = randomBetween(2, 5, 2);
-        pixels[i + 2] = randomBetween(-3,3, 8) / 1.0f;
+        pixels[i + 2] = randomBetween(-3,3, 8) / 1.0f + 1.0f;
         pixels[i + 3] = randomBetween(2, 10, 1);
     }
 
@@ -303,7 +303,7 @@ public:
     }
 };
 
-void updateParticlesOnGPU(ParticleSystem& b, GLuint shaderProgramParticle, glm::mat4 camera, glm::mat4 perspective, glm::mat4& toLightSpace, GLuint depthTextureId, float dt) {
+void updateParticlesOnGPU(ParticleSystem& b, GLuint shaderProgramParticle, glm::mat4 camera, glm::mat4 perspective, glm::mat4& toLightSpace, GLuint depthTextureId, GLuint normalTexture, float dt) {
 
 
     // ----------------------- DO STUFF HERE TO UPDATE TEXTURE
@@ -347,6 +347,10 @@ void updateParticlesOnGPU(ParticleSystem& b, GLuint shaderProgramParticle, glm::
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_3D, b.forceFieldTexture);
     glUniform1i(glGetUniformLocation(shaderProgramParticle, "forceFieldTexture"), 5);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, normalTexture);
+    glUniform1i(glGetUniformLocation(shaderProgramParticle, "normalTexture"), 6);
 
     glUniform1f(glGetUniformLocation(shaderProgramParticle, "dt"), dt);
 
@@ -439,6 +443,8 @@ DepthFBO createFBOForDepth() {
 }
 
 
+
+
 ParticleSystemFBO createFrameBufferSingleTexture(int textureSize) {
     GLuint fbo = 0;
     glGenFramebuffers(1, &fbo);
@@ -454,8 +460,8 @@ ParticleSystemFBO createFrameBufferSingleTexture(int textureSize) {
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
     }

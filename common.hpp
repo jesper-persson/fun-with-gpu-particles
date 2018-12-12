@@ -31,8 +31,8 @@ std::vector<float>* pngTextureToFloatArray(std::string filename) {
 		(*imageCopy)[newBufferIndex]  = ( (float)image[oldBufferIndex] );
 	}
 
-	std::cout << (*imageCopy)[0] << std::endl;
-	std::cout << "adsad" << (*imageCopy)[0] << std::endl;
+	// std::cout << (*imageCopy)[0] << std::endl;
+	// std::cout << "adsad" << (*imageCopy)[0] << std::endl;
 
 	return imageCopy;
 }

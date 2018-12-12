@@ -59,12 +59,19 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
     const int verticesSize = width * height * 4;
     float* vertices = new float[verticesSize];
 
+    const int normalSize = width * height * 3;
+    float* normals = new float[normalSize];
+
     const int texturesSize = width * height * 2;
     float* textures = new float[texturesSize];
 
     const int indicesSize = (width - 1) * (height - 1) * 6;
     int* indices = new int[indicesSize];
 
+
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    float scaleZ = 1.0f;
 
     for (int h = 0; h < height; h++) {
         for (int w = 0; w < width; w++) {
@@ -75,6 +82,47 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 
             textures[(h * width + w) * 2] = ((float)w / (float)(width - 1));
 			textures[(h * width + w) * 2 + 1] = (1 - (float)h / (float)(height - 1));
+
+            // Calc normals
+            int x = w;
+            int z = h;
+			if (x == width - 1 || z == height - 1 || x == 0 || z == 0) {
+				normals[(z * width + x) * 3] = 0;
+				normals[(z * width + x) * 3 + 1] = 1;
+				normals[(z * width + x) * 3 + 2] = 0;
+			} else {
+				glm::vec3 a = glm::vec3(x * scaleX, 1-heightmap[width * z + x] * scaleY, z * scaleZ);
+				glm::vec3 ab = a - glm::vec3((x + 1) * scaleX, 1-heightmap[width * z + x + 1] * scaleY, z * scaleZ);
+				glm::vec3 ac = a - glm::vec3(x * scaleX, 1-heightmap[width * (z + 1) + x] * scaleY, (z + 1) * scaleZ);
+				glm::vec3 normal1 = glm::normalize(glm::cross(ac, ab));
+				glm::vec3 normal = normal1;
+				// if (!FAST_MODE) {
+					// glm::vec3 ad = a - glm::vec3((x - 1) * scaleX, 1-heightmap[width * z + x - 1] * scaleY, z * scaleZ);
+					// glm::vec3 ae = a - glm::vec3(x * scaleX, 1-heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
+					// glm::vec3 normal2 = glm::normalize(glm::cross(ae, ad));
+					// glm::vec3 af = a - glm::vec3((x - 1) * scaleX, 1-heightmap[width * z + x - 1] * scaleY, z * scaleZ);
+					// glm::vec3 ag = a - glm::vec3(x * scaleX, 1-heightmap[width * (z + 1) + x] * scaleY, (z + 1) * scaleZ);
+					// glm::vec3 normal3 = glm::normalize(glm::cross(af, ag));
+					// glm::vec3 ah = a - glm::vec3((x + 1) * scaleX, 1-heightmap[width * z + x + 1] * scaleY, z * scaleZ);
+					// glm::vec3 ai = a - glm::vec3(x * scaleX, 1-heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
+					// glm::vec3 normal4 = glm::normalize(glm::cross(ah, ai));
+					// normal = glm::normalize(normal1 + normal2 + normal3 + normal4);
+				// }
+
+                // if (x > 500 && x < 1000) {
+                //     normals[(z * width + x) * 3] = 1.0f;
+				//     normals[(z * width + x) * 3 + 1] = 0;
+				//     normals[(z * width + x) * 3 + 2] = 0;
+                // } else {
+                //     normals[(z * width + x) * 3] = 0.0f;
+				//     normals[(z * width + x) * 3 + 1] = 1.0f;
+				//     normals[(z * width + x) * 3 + 2] = 0;
+                // }
+
+		         normals[(z * width + x) * 3] = normal.x;
+				    normals[(z * width + x) * 3 + 1] = normal.y;
+				    normals[(z * width + x) * 3 + 2] = normal.z;
+			}
         }
     }
 
@@ -93,10 +141,10 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
                 float heightdiff5 = std::abs(heightmap[vertexIndex + width + 1] - heightmap[vertexIndex]);
                 
                 if (heightdiff5 < limit && heightdiff1 < limit && heightdiff2 < limit && heightdiff3 < limit && heightdiff4 < limit) {
-                    indices[arrayIndex] = vertexIndex;
-                    indices[arrayIndex + 1] = vertexIndex + 1;
-                    indices[arrayIndex + 2] = vertexIndex + width;
-                    arrayIndex += 3;
+                    // indices[arrayIndex] = vertexIndex;
+                    // indices[arrayIndex + 1] = vertexIndex + 1;
+                    // indices[arrayIndex + 2] = vertexIndex + width;
+                    // arrayIndex += 3;
                     indices[arrayIndex] = vertexIndex + 1;
 				    indices[arrayIndex + 1] = vertexIndex + width + 1;
 				    indices[arrayIndex + 2] = vertexIndex + width;
@@ -120,9 +168,8 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
                     vertices[(vertexIndex + width) * 4 + 3]=0;
                     vertices[(vertexIndex + width + 1) * 4 + 3]=0;
                 }
-        
 
-
+                
 			}
         }
     }
@@ -146,6 +193,14 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * texturesSize, textures, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
+
+    // Texture
+	GLuint normalBuffer = 0;
+	glGenBuffers(1, &normalBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * normalSize, normals, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
 
     // Index
 	GLuint indexBuffer = 0;

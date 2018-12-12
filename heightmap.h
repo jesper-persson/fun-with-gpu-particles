@@ -17,6 +17,7 @@ public:
     glm::vec3 position;
     glm::vec3 scale;
 	glm::mat4 rotation = glm::mat4(1.0);
+	int textureScale = 1;
 };
 
 void renderModel(Model &model, GLuint shaderProgram, glm::mat4 projection, glm::mat4 camera, GLuint depthTexture, glm::mat4 toLightSpace) {
@@ -24,13 +25,13 @@ void renderModel(Model &model, GLuint shaderProgram, glm::mat4 projection, glm::
 
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), model.position);
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), model.scale);
-    glm::mat4 modelToWorld = translate * scale * model.rotation;
+    glm::mat4 modelToWorld = translate *  model.rotation * scale;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, model.textureId);
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "textureScale"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "textureScale"), model.textureScale);
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, depthTexture);
@@ -116,16 +117,16 @@ Model heightmapToModel(float *heightmap, int width, int height, float scaleX, fl
 				glm::vec3 normal1 = glm::normalize(glm::cross(ac, ab));
 				glm::vec3 normal = normal1;
 				// if (!FAST_MODE) {
-				// 	glm::vec3 ad = a - glm::vec3((x - 1) * scaleX, heightmap[width * z + x - 1] * scaleY, z * scaleZ);
-				// 	glm::vec3 ae = a - glm::vec3(x * scaleX, heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
-				// 	glm::vec3 normal2 = glm::normalize(glm::cross(ae, ad));
-				// 	glm::vec3 af = a - glm::vec3((x - 1) * scaleX, heightmap[width * z + x - 1] * scaleY, z * scaleZ);
-				// 	glm::vec3 ag = a - glm::vec3(x * scaleX, heightmap[width * (z + 1) + x] * scaleY, (z + 1) * scaleZ);
-				// 	glm::vec3 normal3 = glm::normalize(glm::cross(af, ag));
-				// 	glm::vec3 ah = a - glm::vec3((x + 1) * scaleX, heightmap[width * z + x + 1] * scaleY, z * scaleZ);
-				// 	glm::vec3 ai = a - glm::vec3(x * scaleX, heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
-				// 	glm::vec3 normal4 = glm::normalize(glm::cross(ah, ai));
-				// 	normal = glm::normalize(normal1 + normal2 + normal3 + normal4);
+					glm::vec3 ad = a - glm::vec3((x - 1) * scaleX, heightmap[width * z + x - 1] * scaleY, z * scaleZ);
+					glm::vec3 ae = a - glm::vec3(x * scaleX, heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
+					glm::vec3 normal2 = glm::normalize(glm::cross(ae, ad));
+					glm::vec3 af = a - glm::vec3((x - 1) * scaleX, heightmap[width * z + x - 1] * scaleY, z * scaleZ);
+					glm::vec3 ag = a - glm::vec3(x * scaleX, heightmap[width * (z + 1) + x] * scaleY, (z + 1) * scaleZ);
+					glm::vec3 normal3 = glm::normalize(glm::cross(af, ag));
+					glm::vec3 ah = a - glm::vec3((x + 1) * scaleX, heightmap[width * z + x + 1] * scaleY, z * scaleZ);
+					glm::vec3 ai = a - glm::vec3(x * scaleX, heightmap[width * (z - 1) + x] * scaleY, (z - 1) * scaleZ);
+					glm::vec3 normal4 = glm::normalize(glm::cross(ah, ai));
+					normal = glm::normalize(normal1 + normal2 + normal3 + normal4);
 				// }
 				normals.get()[(z * width + x) * 3] = normal.x;
 				normals.get()[(z * width + x) * 3 + 1] = normal.y;
