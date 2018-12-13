@@ -55,7 +55,7 @@ void main() {
     float val = float(numCollisions[mappedY * depthSize + mappedX]);
     
     if (pos.w >= 0.5) {
-        worldCoord.y += val / 1000.0f;
+        worldCoord.y += val / 400.0f;
         num_collisions_out = val;
     }  else {
         num_collisions_out = val;

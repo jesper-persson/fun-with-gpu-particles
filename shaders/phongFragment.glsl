@@ -35,11 +35,12 @@ void main() {
     vec4 textureSample = texture(tex1, vec2(texture_out * textureScale)).xyzw;
     out_color = vec4(textureSample.xyzw) * intensity;
 
-    float beginFade = 2.0;
-    float endFade = 10.0;
-    vec4 endColor = vec4(47/255.0, 54/255.0, 66/255.0, 0);
+    float beginFade = 10.0;
+    float endFade = 25.0;
+    // vec4 endColor = vec4(47/255.0, 54/255.0, 66/255.0, 0);
+    vec4 endColor = vec4(164/255.0, 184/255.0, 196/255.0, 0);
     float distance = length(camera_pos_out - frag_out);
-    if (distance > beginFade && false) {
+    if (distance > beginFade && true) {
         float a = clamp( (distance-beginFade)/(endFade-beginFade), 0,  1);
         out_color = mix(out_color, endColor, a);
     }

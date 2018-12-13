@@ -154,7 +154,7 @@ void main() {
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
         newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
         newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5 ;//3.5;
-        newVelocityTexture.y = newVelocityTexture.y * 2;
+        newVelocityTexture.y = newVelocityTexture.y  * 2;
         newVelocityTexture.w = 0;
     }
 }

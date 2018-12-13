@@ -14,8 +14,8 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/euler_angles.hpp"
 
-const int WINDOW_WIDTH = 1500;
-const int WINDOW_HEIGHT = 1200;
+const int WINDOW_WIDTH = 2400;
+const int WINDOW_HEIGHT = 1400;
 
 int depthSize = 2048;
 
@@ -224,7 +224,7 @@ int main() {
     int size = 464; //sqrt(heightValues->size());
     Model terrainModel = heightmapToModel(heightArray, size, size, 1.0f, 1.0f, 1.0f, 30.0f);
     terrainModel.textureId = loadPNGTexture("images/rock2.png"); 
-    terrainModel.position = glm::vec3(-10, -5, -10);
+    terrainModel.position = glm::vec3(-12, -5, -12);
     terrainModel.scale =glm::vec3(0.1f, 0.02f, 0.1f);
     terrainModel.textureScale = 8;
 
@@ -235,7 +235,7 @@ int main() {
 
     Model cottage = tinyObjLoader("models/cottage.obj");
     cottage.textureId =  loadPNGTexture("images/cottage.png");
-    cottage.position =  glm::vec3(-1.0f, -5.0f, 0);
+    cottage.position =  glm::vec3(-3.0f, -5.0f, -2.0f);
     cottage.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
     cottage.rotation = glm::eulerAngleY(0.0f);
 
@@ -319,7 +319,7 @@ int main() {
 
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(47/255.0, 54/255.0, 66/255.0, 1);
+        glClearColor(164/255.0, 185/255.0, 196/255.0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Calculate dt and FPS

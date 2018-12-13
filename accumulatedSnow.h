@@ -132,7 +132,7 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
             if (w != width - 1 && h != height - 1) {
 				int vertexIndex = h * width + w;
 
-                float limit = 0.002f;
+                float limit = 0.004f;
                 float heightdiff1 = std::abs(heightmap[vertexIndex] - heightmap[vertexIndex + width]);
                 float heightdiff2 = std::abs(heightmap[vertexIndex] - heightmap[vertexIndex + 1]);
                 float heightdiff3 = std::abs(heightmap[vertexIndex + width + 1] - heightmap[vertexIndex + 1]);
