@@ -81,12 +81,12 @@ void main() {
     projCoord = projCoord * 0.5 + 0.5;
     vec4 texDepthV = texture(texDepth, projCoord.xy);
     float bias = 0.001;
-    if (projCoord.z + bias > texDepthV.r && hasCollided < 0.9 && projCoord.z - 0.0001 < texDepthV.r ) { // 0.74
+    if (projCoord.z + bias > texDepthV.r && hasCollided < 0.9 && projCoord.z - 0.005 < texDepthV.r ) { // 0.74
         newPosition = oldPosition;
         newPositionTexture = newPosition;
 
         vec4 hej = vec4(projCoord.xyz, 1);
-        hej.z = projCoord.z;
+        hej.z = projCoord.z - bias;
         hej = (hej - 0.5) / 0.5;
         hej = vec4((hej * lightCoord.w).xyz, lightCoord.w);
         vec4 back = inverse(toLightSpace) * hej;
@@ -150,11 +150,11 @@ void main() {
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
-        newPositionTexture.z -= 3;
+        //newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
         newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
         newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5 ;//3.5;
-        //newVelocityTexture.y = newVelocityTexture.y * 2;
+        newVelocityTexture.y = newVelocityTexture.y * 2;
         newVelocityTexture.w = 0;
     }
 }

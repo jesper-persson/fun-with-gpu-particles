@@ -146,7 +146,7 @@ GLuint genPositionTexture(int textureSize) {
 
     for (int i = 0; i < length; i += 4) {
         pixels[i] = randomBetween(-10, 10, 8) / 1.0f;
-        pixels[i + 1] = randomBetween(2, 5, 2);
+        pixels[i + 1] = randomBetween(5, 8, 2);
         pixels[i + 2] = randomBetween(-10,10, 8) / 1.0f;
         pixels[i + 3] = randomBetween(2, 10, 1);
     }

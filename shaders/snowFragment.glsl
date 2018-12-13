@@ -33,7 +33,7 @@ void main() {
 
 
     if (num_collisions_out > 0) {
-        out_color.w = num_collisions_out / 1.0f;
+        out_color.w = num_collisions_out / 10.0f;
     } else {
         out_color.w = 0;
     }
