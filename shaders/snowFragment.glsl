@@ -28,15 +28,24 @@ void main() {
     float shininess = 10;
     float specularCoefficient = pow(cosAngle, shininess);
 
-    vec4 textureSample = texture(tex1, vec2(texture_out) * float(1)).xyzw * (intensity + specularCoefficient);
+    vec4 textureSample = texture(tex1, vec2(texture_out) * float(1)).xyzw;// * (intensity + specularCoefficient);
     out_color = vec4(textureSample.xyzw ) ; // * min(num_collisions_out / 10.0f, 1.0);
 
 
-    if (num_collisions_out > 0) {
-        out_color.w = num_collisions_out / (float(1));
-    } else {
-        out_color.w = 0;
+    // if (num_collisions_out > 0) {
+    //     out_color.w = num_collisions_out / (float(1));
+    // } else {
+    //     out_color.w = 0;
+    // }
+
+    if (textureSample.r > num_collisions_out) {
+        discard;
     }
+
+    out_color = vec4(1,1,1,1) * (intensity + specularCoefficient);
+    out_color.a = 1;
+
+
 
     // out_color.w = 0.5;
 

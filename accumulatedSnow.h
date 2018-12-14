@@ -76,7 +76,7 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
     float scaleY = 1.0f;
     float scaleZ = 1.0f;
 
-    float textureScale = 1.0f;
+    float textureScale = depthSize * 1.0f;
 
     for (int h = 0; h < height; h++) {
         for (int w = 0; w < width; w++) {
@@ -219,7 +219,7 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 	m.vao = vao;
 	m.numIndices = indicesSize;
     m.indexBuffer = indexBuffer;
-    m.textureId = loadPNGTexture("images/white.png"); //images/accumulated_snow/snow1.png");
+    m.textureId = loadPNGTexture("images/heightmap1.png");// white.png //images/accumulated_snow/snow1.png");
 
     delete vertices;
     delete textures;
