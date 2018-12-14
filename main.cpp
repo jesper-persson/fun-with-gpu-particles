@@ -14,8 +14,8 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/euler_angles.hpp"
 
-const int WINDOW_WIDTH = 2400;
-const int WINDOW_HEIGHT = 1400;
+const int WINDOW_WIDTH = 1400;
+const int WINDOW_HEIGHT = 800;
 
 int depthSize = 2048;
 
@@ -191,22 +191,22 @@ int main() {
     GLuint phongShader = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\phongFragment.glsl");
     GLuint shaderProgramDepth = createShaderProgram("shaders\\phongVertex.glsl", "shaders\\fragmentDepth.glsl");
     GLuint particleShader = createShaderProgram("shaders\\vertex.glsl", "shaders\\particleFragment.glsl");
-    GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragment.glsl");
+    GLuint shaderProgramInstanced = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\renderParticlesFragment.glsl");
     GLuint shaderProgramInstancedDepth = createShaderProgram("shaders\\instanceVertex.glsl", "shaders\\fragmentDepth.glsl");
     GLuint shaderCalcNormals = createShaderProgram("shaders\\vertex.glsl", "shaders\\calcNormalsFragment.glsl");
     SimpleQuad quadForNormals;
 
     ParticleSystem ps{100000};
-    ps.scale = glm::vec3(0.009f, 0.009f, 1.0f);
+    ps.scale = glm::vec3(0.02f, 0.02f, 1.0f);
     ps.colorTexture = loadPNGTexture("images/snow2.png");
     ParticleSystem ps2{100000};
-    ps2.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps2.scale = glm::vec3(0.02f, 0.02f, 1.0f);
     ps2.colorTexture = loadPNGTexture("images/snow2.png");
     ParticleSystem ps3{100000};
-    ps3.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps3.scale = glm::vec3(0.02f, 0.02f, 1.0f);
     ps3.colorTexture = loadPNGTexture("images/snow2.png");
     ParticleSystem ps4{100000};
-    ps4.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps4.scale = glm::vec3(0.02f, 0.02f, 1.0f);
     ps4.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);
@@ -576,7 +576,7 @@ int main() {
         if (iteration > 1) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-            renderSnowMesh(snowMesh, normals.outputPositionTexture, whiteTexture, snowOffset, snowProgram, toLightSpace, perspective, cameraMatrix);
+            renderSnowMesh(snowMesh, normals.outputPositionTexture, snowOffset, snowProgram, toLightSpace, perspective, cameraMatrix);
             glDisable(GL_BLEND);
             glDepthMask(GL_TRUE);
         }

@@ -14,6 +14,8 @@ out vec2 texture_out;
 out vec3 normal_out;
 out vec3 frag_out;
 
+out float timeLeft;
+
 void main() {
     texture_out = texture1.xy;
 
@@ -23,7 +25,8 @@ void main() {
     float x = (index % texWidth) / float(textureSize);
     float y = (index / texHeight) / float(textureSize);
 
-    vec3 pixelValue = texture(tex, vec2(x,y)).xyz;
+    vec4 pixelValueT = texture(tex, vec2(x,y)).xyzw;
+    vec3 pixelValue = vec3(pixelValueT.xyz);
 
     mat4 translationNew = translation;
     translationNew[3][0] = pixelValue.x;
@@ -37,6 +40,8 @@ void main() {
 
     mat4 modelToView = view * translationNew  * inverse(faceCamera) * scale;
 
+
+    timeLeft = pixelValueT.w;
 
     gl_Position = perspective * modelToView * vec4(pos, 1);
 }

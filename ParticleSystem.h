@@ -11,7 +11,7 @@ float randomBetween(int min, int max, int numDecimals = 0) {
     int multiplier = pow(10, numDecimals);
     max = max * multiplier;
     min = min * multiplier;
-    float num = (rand() / (float)RAND_MAX) * (max-min) + min;
+    float num = (rand() / (double)RAND_MAX) * (max-min) + min;
     return num / multiplier;
 }
 
@@ -130,7 +130,7 @@ GLuint genVelocityTexture(int textureSize) {
 
     for (int i = 0; i < length; i += 4) {
         pixels[i] = randomBetween(-1, 1, 8) / 5.0f * 1;
-        pixels[i + 1] = randomBetween(-2, -1, 8) / 2.0f;
+        pixels[i + 1] = randomBetween(-2, -1, 8) / 2.0f * 2.0f;
         pixels[i + 2] = randomBetween(-1, 1, 8) / 5.0f * 1; 
         pixels[i + 3] = 0;
     }
@@ -145,10 +145,10 @@ GLuint genPositionTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-10, 10, 8) / 1.0f;
+        pixels[i] = randomBetween(-10, 10, 3) / 1.0f;
         pixels[i + 1] = randomBetween(5, 8, 2);
-        pixels[i + 2] = randomBetween(-10,10, 8) / 1.0f;
-        pixels[i + 3] = randomBetween(2, 10, 1);
+        pixels[i + 2] = randomBetween(-10,10, 3) / 1.0f;
+        pixels[i + 3] = randomBetween(15, 20, 1);
     }
 
     return genTextureWithData(w, h, pixels);

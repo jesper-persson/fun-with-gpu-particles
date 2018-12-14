@@ -1,5 +1,7 @@
 #include <cmath>
 
+#include "common.hpp"
+
 #include "glm/vec3.hpp"
 #include "glew.h"
 
@@ -10,9 +12,10 @@ public:
     GLuint vao;
     GLuint indexBuffer;
     int numIndices;
+    GLuint textureId;
 };
 
-void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint textureId,  GLuint vertexOffsetTexture, GLuint shaderProgram, glm::mat4 toLightSpace,  glm::mat4 projection, glm::mat4 camera) {
+void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture, GLuint shaderProgram, glm::mat4 toLightSpace,  glm::mat4 projection, glm::mat4 camera) {
     glUseProgram(shaderProgram);
 
     // projection is 20 units in each direction. And this is put into 1024 by 1024 pixels.
@@ -21,7 +24,7 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint textureId,  GLuint 
     float xScale = 20.0f/(float)depthSize;
     float yScale = 20.0f/1.0f;
 
-    glm::vec3 scaleV = glm::vec3(xScale, yScale, xScale);
+        glm::vec3 scaleV = glm::vec3(xScale, yScale, xScale);
 
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(-10, -10+0.009f, 10));
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), scaleV);
@@ -29,7 +32,7 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint textureId,  GLuint 
     glm::mat4 modelToWorld = translate * scale;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTexture(GL_TEXTURE_2D, mesh.textureId);
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
     glActiveTexture(GL_TEXTURE1);
@@ -73,6 +76,8 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
     float scaleY = 1.0f;
     float scaleZ = 1.0f;
 
+    float textureScale = 1.0f;
+
     for (int h = 0; h < height; h++) {
         for (int w = 0; w < width; w++) {
             vertices[(h * width + w) * 4 + 0] = w;
@@ -80,8 +85,8 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
             vertices[(h * width + w) * 4 + 2] = -h;
             vertices[(h * width + w) * 4 + 3] = 1;
 
-            textures[(h * width + w) * 2] = ((float)w / (float)(width - 1));
-			textures[(h * width + w) * 2 + 1] = (1 - (float)h / (float)(height - 1));
+            textures[(h * width + w) * 2] = ((float)w / (float)(width - 1)) * textureScale;
+			textures[(h * width + w) * 2 + 1] = (1 - (float)h / (float)(height - 1)) * textureScale;
 
             // Calc normals
             int x = w;
@@ -208,10 +213,13 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indicesSize, indices, GL_STATIC_DRAW);
 
+    // Load snow
+
 	SnowMesh m;
 	m.vao = vao;
 	m.numIndices = indicesSize;
     m.indexBuffer = indexBuffer;
+    m.textureId = loadPNGTexture("images/white.png"); //images/accumulated_snow/snow1.png");
 
     delete vertices;
     delete textures;

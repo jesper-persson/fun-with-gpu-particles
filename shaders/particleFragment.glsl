@@ -118,27 +118,66 @@ void main() {
 
         // Lower collide value based on normals and incoming direction
         vec3 normal = normalize(texture(normalTexture, projCoord.xy).xyz);
-        float normalFactor = max(0, dot(-normal, vec3(velocity.xyz)));
+        float normalFactor = max(0, dot(-normal, vec3(normalize(velocity.xyz))));
 
         // newVelocityTexture = vec4(normal * 10, 1);
      
-        float collideValue = 0.5 * normalFactor *  normalFactor* normalFactor * normalFactor * normalFactor ;
-    
+        float collideValue = 1 * normalFactor  * normalFactor  * normalFactor * normalFactor * normalFactor * normalFactor * normalFactor * normalFactor; //normalFactor * normalFactor * normalFactor * normalFactor;// 0.5 * normalFactor *  normalFactor* normalFactor * normalFactor * normalFactor ;
+
+        collideValue = min(1, collideValue);
+        collideValue = max(0, collideValue);
 
         int mappedX = int(projCoord.x * depthSize); 
         int mappedY = int(projCoord.y * depthSize); 
-        numCollisions[mappedY * depthSize + mappedX] += + collideValue;
+
+        float curVal = numCollisions[mappedY * depthSize + mappedX];
+        bool increase = true;
+
+        if (curVal > numCollisions[mappedY * depthSize + mappedX - 1]) {
+            numCollisions[mappedY * depthSize + mappedX - 1] += collideValue;
+            increase = false;
+        }
+        
+        if (curVal > numCollisions[mappedY * depthSize + mappedX + 1]) {
+            numCollisions[mappedY * depthSize + mappedX + 1] += collideValue;
+            increase = false;
+        }
+
+        if (curVal > numCollisions[mappedY * depthSize + depthSize + mappedX]) {
+            numCollisions[mappedY * depthSize + depthSize + mappedX] += collideValue;
+            increase = false;
+        }
+
+       if (curVal > numCollisions[mappedY * depthSize - depthSize + mappedX]) {
+            numCollisions[mappedY * depthSize - depthSize + mappedX] += collideValue;
+            increase = false;
+        }
+
+
+        if (increase) {
+            numCollisions[mappedY * depthSize + mappedX] += collideValue;
+        }
+
+
+        //numCollisions[mappedY * depthSize + mappedX] += 1;//+ collideValue;
+
+
+
 
         // "Low pass filter"
-        numCollisions[mappedY * depthSize + mappedX - 1] += collideValue/2;
-        numCollisions[mappedY * depthSize + mappedX + 1] += collideValue/2;
-        numCollisions[mappedY * depthSize + depthSize + mappedX] += collideValue/2;
-        numCollisions[mappedY * depthSize - depthSize + mappedX] += collideValue/2;        
+        // numCollisions[mappedY * depthSize + mappedX - 1] += collideValue/2;
+        // numCollisions[mappedY * depthSize + mappedX + 1] += collideValue/2;
+        // numCollisions[mappedY * depthSize + depthSize + mappedX] += collideValue/2;
+        // numCollisions[mappedY * depthSize - depthSize + mappedX] += collideValue/2;        
 
-        numCollisions[mappedY * depthSize + mappedX - 1 - depthSize] += collideValue/2;
-        numCollisions[mappedY * depthSize + mappedX - 1 + depthSize] += collideValue/2;
-        numCollisions[mappedY * depthSize + mappedX + 1 - depthSize] += collideValue/2;
-        numCollisions[mappedY * depthSize + mappedX + 1 + depthSize] += collideValue/2;
+        // numCollisions[mappedY * depthSize + mappedX - 1 - depthSize] += collideValue/2;
+        // numCollisions[mappedY * depthSize + mappedX - 1 + depthSize] += collideValue/2;
+        // numCollisions[mappedY * depthSize + mappedX + 1 - depthSize] += collideValue/2;
+        // numCollisions[mappedY * depthSize + mappedX + 1 + depthSize] += collideValue/2;
+
+        if (timeLeft > 1) {
+            timeLeft = 1;
+        }
     }
 
     // Limit max speed
@@ -150,11 +189,15 @@ void main() {
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
+        newPositionTexture.x = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 20;
+        newPositionTexture.y = (rand(vec2(newPosition.x, newPosition.z))) * 4 + 10;
+        newPositionTexture.z = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 20;
+        
         //newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
-        newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.5;
-        newVelocityTexture.z = (rand(vec2(velocity.z, newPosition.x)) - 0.5) * 0.5 ;//3.5;
-        newVelocityTexture.y = newVelocityTexture.y  * 2;
+        newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2;
+        newVelocityTexture.z = (rand(vec2(velocity.z * newVelocityTexture.x, newPosition.x)) - 0.5) * 2 ;//3.5;
+        // newVelocityTexture.y = newVelocityTexture.y;
         newVelocityTexture.w = 0;
     }
 }
