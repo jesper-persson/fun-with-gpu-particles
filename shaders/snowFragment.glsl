@@ -1,6 +1,8 @@
 #version 400
 
 uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform sampler2D tex3;
 uniform sampler2D normalMap;
 
 in vec2 texture_out;
@@ -32,19 +34,31 @@ void main() {
     out_color = vec4(textureSample.xyzw ) ; // * min(num_collisions_out / 10.0f, 1.0);
 
 
+    vec4 textureSample1 = texture(tex1, vec2(texture_out) * float(1)).xyzw;
+    vec4 textureSample2 = texture(tex2, vec2(texture_out) * float(1) * 2000).xyzw;
+    vec4 textureSample3 = texture(tex3, vec2(texture_out) * float(1) * 2000).xyzw;
+
     // if (num_collisions_out > 0) {
     //     out_color.w = num_collisions_out / (float(1));
     // } else {
     //     out_color.w = 0;
     // }
 
-    if (textureSample.r > num_collisions_out) {
+    if (mod(int(textureSample1.r * 100), 2) == 0) {
+        textureSample = textureSample2;
+    } else {
+        textureSample = textureSample3;
+    }
+
+    if (textureSample.r >= num_collisions_out) {
         discard;
     }
 
     out_color = vec4(1,1,1,1) * (intensity + specularCoefficient);
     out_color.a = 1;
 
+
+    // out_color = textureSample;
 
 
     // out_color.w = 0.5;

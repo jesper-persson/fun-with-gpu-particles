@@ -13,6 +13,8 @@ public:
     GLuint indexBuffer;
     int numIndices;
     GLuint textureId;
+    GLuint textureId2;
+    GLuint textureId3;
 };
 
 void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture, GLuint shaderProgram, glm::mat4 toLightSpace,  glm::mat4 projection, glm::mat4 camera) {
@@ -33,7 +35,15 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mesh.textureId);
-    glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex1"), 0);
+
+        glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, mesh.textureId2);
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex2"), 3);
+
+     glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, mesh.textureId3);
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex3"), 4);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, vertexOffsetTexture);
@@ -76,7 +86,7 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
     float scaleY = 1.0f;
     float scaleZ = 1.0f;
 
-    float textureScale = depthSize * 1.0f;
+    float textureScale =  1.0f;
 
     for (int h = 0; h < height; h++) {
         for (int w = 0; w < width; w++) {
@@ -220,6 +230,8 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 	m.numIndices = indicesSize;
     m.indexBuffer = indexBuffer;
     m.textureId = loadPNGTexture("images/heightmap1.png");// white.png //images/accumulated_snow/snow1.png");
+    m.textureId2 = loadPNGTexture("images/heightmap1.png");// white.png //images/accumulated_snow/snow1.png");
+    m.textureId3 = loadPNGTexture("images/heightmap4.png");// white.png //images/accumulated_snow/snow1.png");
 
     delete vertices;
     delete textures;

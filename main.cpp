@@ -14,8 +14,8 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/euler_angles.hpp"
 
-const int WINDOW_WIDTH = 1400;
-const int WINDOW_HEIGHT = 800;
+const int WINDOW_WIDTH = 2000;
+const int WINDOW_HEIGHT = 1400;
 
 int depthSize = 2048;
 
@@ -196,17 +196,17 @@ int main() {
     GLuint shaderCalcNormals = createShaderProgram("shaders\\vertex.glsl", "shaders\\calcNormalsFragment.glsl");
     SimpleQuad quadForNormals;
 
-    ParticleSystem ps{100000};
-    ps.scale = glm::vec3(0.02f, 0.02f, 1.0f);
+    ParticleSystem ps{10000};
+    ps.scale = glm::vec3(0.025f, 0.025f, 1.0f);
     ps.colorTexture = loadPNGTexture("images/snow2.png");
-    ParticleSystem ps2{100000};
-    ps2.scale = glm::vec3(0.02f, 0.02f, 1.0f);
+    ParticleSystem ps2{10000};
+    ps2.scale = glm::vec3(0.025f, 0.025f, 1.0f);
     ps2.colorTexture = loadPNGTexture("images/snow2.png");
-    ParticleSystem ps3{100000};
-    ps3.scale = glm::vec3(0.02f, 0.02f, 1.0f);
+    ParticleSystem ps3{10000};
+    ps3.scale = glm::vec3(0.025f, 0.025f, 1.0f);
     ps3.colorTexture = loadPNGTexture("images/snow2.png");
-    ParticleSystem ps4{100000};
-    ps4.scale = glm::vec3(0.02f, 0.02f, 1.0f);
+    ParticleSystem ps4{10000};
+    ps4.scale = glm::vec3(0.025f, 0.025f, 1.0f);
     ps4.colorTexture = loadPNGTexture("images/snow2.png");
 
     glfwSetKeyCallback(window, keyCallback);

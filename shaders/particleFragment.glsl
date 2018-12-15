@@ -73,7 +73,14 @@ void main() {
 
     vec4 netForce = vec4(0, 0, 0, 0);
     newVelocityTexture = velocity + netForce * dt;
+
     newVelocityTexture.w = hasCollided;
+
+    if (hasCollided < 0.5) {
+        newVelocityTexture.x = 0.5*sin(newVelocityTexture.y + timeLeft);
+        newVelocityTexture.z = 0.5*sin(newVelocityTexture.y + timeLeft);
+    }    
+
 
     // Depth texture collision detection and response
     vec4 lightCoord = toLightSpace * vec4(newPosition.xyz, 1);
@@ -189,15 +196,15 @@ void main() {
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
-        newPositionTexture.x = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 20;
-        newPositionTexture.y = (rand(vec2(newPosition.x, newPosition.z))) * 4 + 10;
-        newPositionTexture.z = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 20;
+        newPositionTexture.x = (rand(vec2(newPosition.x, velocity.z)) - 0.5) * 2 * 10;
+        // newPositionTexture.y = (rand(vec2(newPosition.x, newPosition.z))) * 4 + 10;
+        newPositionTexture.z = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2 * 10;
         
         //newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
-        newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2;
-        newVelocityTexture.z = (rand(vec2(velocity.z * newVelocityTexture.x, newPosition.x)) - 0.5) * 2 ;//3.5;
-        // newVelocityTexture.y = newVelocityTexture.y;
+        newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2.0 / 4.0;
+        newVelocityTexture.z = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 2.0 / 4.0;
+        newVelocityTexture.y = newVelocityTexture.y;
         newVelocityTexture.w = 0;
     }
 }

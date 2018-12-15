@@ -129,11 +129,28 @@ GLuint genVelocityTexture(int textureSize) {
     float pixels[length];
 
     for (int i = 0; i < length; i += 4) {
-        pixels[i] = randomBetween(-1, 1, 8) / 5.0f * 1;
-        pixels[i + 1] = randomBetween(-2, -1, 8) / 2.0f * 2.0f;
-        pixels[i + 2] = randomBetween(-1, 1, 8) / 5.0f * 1; 
+        pixels[i] = randomBetween(-1, 1, 8) / 4.0f * 1;
+        pixels[i + 1] = randomBetween(-3, -2, 8) / 1.5f * 1.0f;
+        pixels[i + 2] = randomBetween(-1, 1, 8) / 4.0f * 1; 
         pixels[i + 3] = 0;
+
+
     }
+
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
+    // std::cout << std::to_string( randomBetween(-1, 1, 8)) << std::endl;
 
     return genTextureWithData(w, h, pixels);
 }
@@ -146,9 +163,9 @@ GLuint genPositionTexture(int textureSize) {
 
     for (int i = 0; i < length; i += 4) {
         pixels[i] = randomBetween(-10, 10, 3) / 1.0f;
-        pixels[i + 1] = randomBetween(5, 8, 2);
+        pixels[i + 1] = randomBetween(2, 5, 2);
         pixels[i + 2] = randomBetween(-10,10, 3) / 1.0f;
-        pixels[i + 3] = randomBetween(15, 20, 1);
+        pixels[i + 3] = randomBetween(15, 20, 2);
     }
 
     return genTextureWithData(w, h, pixels);
