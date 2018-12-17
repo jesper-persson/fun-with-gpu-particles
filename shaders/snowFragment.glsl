@@ -54,7 +54,7 @@ void main() {
         discard;
     }
 
-    out_color = vec4(1,1,1,1) * (intensity + specularCoefficient);
+    out_color = vec4(0.95,0.95,1,1) * (intensity + specularCoefficient);
     out_color.a = 1;
 
 
