@@ -196,13 +196,17 @@ void main() {
     newPositionTexture.w = timeLeft;
     if (timeLeft < 0) {
         newPositionTexture = texture(initialPositionTexture, vec2(texture_out));
-        newPositionTexture.x = (rand(vec2(newPosition.x, velocity.z)) - 0.5) * 2 * 10;
-        // newPositionTexture.y = (rand(vec2(newPosition.x, newPosition.z))) * 4 + 10;
-        newPositionTexture.z = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2 * 10;
+        newPositionTexture.x = (rand(vec2(newPosition.x, velocity.z)) - 0.5) * 20;
+        newPositionTexture.z = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 20;
+        // newPositionTexture.x = (rand(vec2(newPosition.x, velocity.z)) - 0.5) * 1;
+        // newPositionTexture.z = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 1;
+        // newPositionTexture.x = (rand(vec2(newPosition.x, velocity.z)) - 0.5) * 0.2 - 3.0f;
+        // newPositionTexture.z = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 0.2;
         
         //newPositionTexture.z -= 3;
         newVelocityTexture = texture(initialVelocityTexture, vec2(texture_out));
         newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.5) * 2.0 / 4.0;
+        // newVelocityTexture.x = (rand(vec2(velocity.x, newPosition.z)) - 0.0) * 4.0 / 4.0;
         newVelocityTexture.z = (rand(vec2(newPosition.x, newPosition.z)) - 0.5) * 2.0 / 4.0;
         newVelocityTexture.y = newVelocityTexture.y;
         newVelocityTexture.w = 0;

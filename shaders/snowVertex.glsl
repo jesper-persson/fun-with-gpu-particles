@@ -52,10 +52,11 @@ void main() {
     int mappedX = int(projCoord.x * depthSize); 
     int mappedY = int(projCoord.y * depthSize); 
 
-    float val = float(numCollisions[mappedY * depthSize + mappedX]) / float(1);
+    float val = float(numCollisions[mappedY * depthSize + mappedX]) / float(1) ;
     
     if (pos.w >= 0.5) {
         worldCoord.y += val / 400.0f;
+        // worldCoord.y += val / 200;
         num_collisions_out = val;
     }  else {
         num_collisions_out = val;
