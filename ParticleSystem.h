@@ -130,7 +130,7 @@ GLuint genVelocityTexture(int textureSize) {
 
     for (int i = 0; i < length; i += 4) {
         pixels[i] = randomBetween(-1, 1, 8) / 4.0f * 1;
-        pixels[i + 1] = randomBetween(-3, -2, 8) / 1.5f * 1.0f;
+        pixels[i + 1] = randomBetween(-3, -2, 8) / 1.5f * 0.7f;
         pixels[i + 2] = randomBetween(-1, 1, 8) / 4.0f * 1; 
         pixels[i + 3] = 0;
 

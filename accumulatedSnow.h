@@ -15,6 +15,7 @@ public:
     GLuint textureId;
     GLuint textureId2;
     GLuint textureId3;
+    GLuint textureId4;
 };
 
 void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture, GLuint shaderProgram, glm::mat4 toLightSpace,  glm::mat4 projection, glm::mat4 camera) {
@@ -28,7 +29,7 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture
 
         glm::vec3 scaleV = glm::vec3(xScale, yScale, xScale);
 
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(-10, -10+0.009f, 10));
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(-10, -10+0.0001f, 10));
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), scaleV);
     glm::mat4 rotation = glm::mat4(1.0f);
     glm::mat4 modelToWorld = translate * scale;
@@ -44,6 +45,10 @@ void renderSnowMesh(SnowMesh &mesh, GLuint normalMap, GLuint vertexOffsetTexture
      glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, mesh.textureId3);
     glUniform1i(glGetUniformLocation(shaderProgram, "tex3"), 4);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, mesh.textureId4);
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex4"), 5);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, vertexOffsetTexture);
@@ -230,8 +235,9 @@ SnowMesh heightmapToSnowMesh(GLfloat *heightmap)  {
 	m.numIndices = indicesSize;
     m.indexBuffer = indexBuffer;
     m.textureId = loadPNGTexture("images/heightmap1.png");// white.png //images/accumulated_snow/snow1.png");
-    m.textureId2 = loadPNGTexture("images/heightmap1.png");// white.png //images/accumulated_snow/snow1.png");
-    m.textureId3 = loadPNGTexture("images/heightmap4.png");// white.png //images/accumulated_snow/snow1.png");
+    m.textureId2 = loadPNGTexture("images/accumulated_snow/snow2.png");// white.png //images/accumulated_snow/snow1.png");
+    m.textureId3 = loadPNGTexture("images/accumulated_snow/snow3.png");// white.png //images/accumulated_snow/snow1.png");
+    m.textureId4 = loadPNGTexture("images/accumulated_snow/snow4.png");// white.png //images/accumulated_snow/snow1.png");
 
     delete vertices;
     delete textures;

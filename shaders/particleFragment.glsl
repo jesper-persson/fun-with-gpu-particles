@@ -77,8 +77,8 @@ void main() {
     newVelocityTexture.w = hasCollided;
 
     if (hasCollided < 0.5) {
-        newVelocityTexture.x = 0.5*sin(newVelocityTexture.y + timeLeft);
-        newVelocityTexture.z = 0.5*sin(newVelocityTexture.y + timeLeft);
+        // newVelocityTexture.x = 0.5*sin(newVelocityTexture.x + timeLeft);
+        // newVelocityTexture.z = 0.5*sin(newVelocityTexture.z + timeLeft);
     }    
 
 
@@ -129,7 +129,7 @@ void main() {
 
         // newVelocityTexture = vec4(normal * 10, 1);
      
-        float collideValue = 1 * normalFactor  * normalFactor  * normalFactor * normalFactor * normalFactor * normalFactor * normalFactor * normalFactor; //normalFactor * normalFactor * normalFactor * normalFactor;// 0.5 * normalFactor *  normalFactor* normalFactor * normalFactor * normalFactor ;
+        float collideValue = 1 * /*normalFactor  * normalFactor  * normalFactor * normalFactor * normalFactor * normalFactor **/ normalFactor * normalFactor; //normalFactor * normalFactor * normalFactor * normalFactor;// 0.5 * normalFactor *  normalFactor* normalFactor * normalFactor * normalFactor ;
 
         collideValue = min(1, collideValue);
         collideValue = max(0, collideValue);
@@ -145,17 +145,17 @@ void main() {
             increase = false;
         }
         
-        if (curVal > numCollisions[mappedY * depthSize + mappedX + 1]) {
+        if (curVal > numCollisions[mappedY * depthSize + mappedX + 1] && increase) {
             numCollisions[mappedY * depthSize + mappedX + 1] += collideValue;
             increase = false;
         }
 
-        if (curVal > numCollisions[mappedY * depthSize + depthSize + mappedX]) {
+        if (curVal > numCollisions[mappedY * depthSize + depthSize + mappedX] && increase) {
             numCollisions[mappedY * depthSize + depthSize + mappedX] += collideValue;
             increase = false;
         }
 
-       if (curVal > numCollisions[mappedY * depthSize - depthSize + mappedX]) {
+       if (curVal > numCollisions[mappedY * depthSize - depthSize + mappedX] && increase) {
             numCollisions[mappedY * depthSize - depthSize + mappedX] += collideValue;
             increase = false;
         }

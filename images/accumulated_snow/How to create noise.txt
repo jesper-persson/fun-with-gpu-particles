@@ -1,0 +1,36 @@
+1. Add noise
+2.5 Blur
+2. Threshold
+3. Blur
+
+
+
+
+
+
+DEMO:
+
+- Kör det programmet vi har nu, och ha det iugånr i bakgrunde
+- Eller starta simuleringen tidigt, och visa resultatet
+- eller visa en bild på hur det blir efter ett tag.
+
+
+- Visa sen i slutet snabbare simulering så man kan se att det byggs på, typ taket på huset
+- Visa snö från sidan
+
+visa hårdkodat num_collisions, typ om det snöat länge och allt är täckt
+
+
+## Prata om:
+- Partikel systemet
+- Collision detection
+
+- Smö mesh generering
+- Snö mesh normals + low pass filter
+- Snö mesh accumulering (SSBO)
+	- mappar till index
+	- öka y i vertexSnow
+	- interpolera noise texture
+
+- Snö mesh noise texturte threshold
+	- gå igenom snowFragment och förklara

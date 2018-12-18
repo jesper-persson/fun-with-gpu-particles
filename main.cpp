@@ -197,17 +197,17 @@ int main() {
     SimpleQuad quadForNormals;
 
     ParticleSystem ps{10000};
-    ps.scale = glm::vec3(0.025f, 0.025f, 1.0f);
-    ps.colorTexture = loadPNGTexture("images/snow2.png");
+    ps.scale = glm::vec3(0.015f, 0.015f, 1.0f);
+    ps.colorTexture = loadPNGTexture("images/snow3.png");
     ParticleSystem ps2{10000};
-    ps2.scale = glm::vec3(0.025f, 0.025f, 1.0f);
-    ps2.colorTexture = loadPNGTexture("images/snow2.png");
+    ps2.scale = glm::vec3(0.015f, 0.015f, 1.0f);
+    ps2.colorTexture = loadPNGTexture("images/snow4.png");
     ParticleSystem ps3{10000};
-    ps3.scale = glm::vec3(0.025f, 0.025f, 1.0f);
-    ps3.colorTexture = loadPNGTexture("images/snow2.png");
+    ps3.scale = glm::vec3(0.015f, 0.015f, 1.0f);
+    ps3.colorTexture = loadPNGTexture("images/snow5.png");
     ParticleSystem ps4{10000};
-    ps4.scale = glm::vec3(0.025f, 0.025f, 1.0f);
-    ps4.colorTexture = loadPNGTexture("images/snow2.png");
+    ps4.scale = glm::vec3(0.015f, 0.015f, 1.0f);
+    ps4.colorTexture = loadPNGTexture("images/snow6.png");
 
     glfwSetKeyCallback(window, keyCallback);
 
@@ -230,11 +230,11 @@ int main() {
 
     Model someModel = tinyObjLoader("models/sphere.obj");
     someModel.textureId =  loadPNGTexture("images/blue.png");
-    someModel.position =  glm::vec3(0, -1.0f, 0);
+    someModel.position =  glm::vec3(-4.0f, -4.0f, 0.0f);
     someModel.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
 
     Model cottage = tinyObjLoader("models/cottage.obj");
-    cottage.textureId =  loadPNGTexture("images/cottage.png");
+    cottage.textureId =  loadPNGTexture("images/blue.png");
     cottage.position =  glm::vec3(-3.0f, -5.0f, -2.0f);
     cottage.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
     cottage.rotation = glm::eulerAngleY(0.0f);
@@ -567,7 +567,7 @@ int main() {
         quadForNormals.textureId = normals.outputPositionTexture;
         quadForNormals.render(shaderProgram, orthoProjection, identity);
        
-        //simpleQuad.render(shaderProgram, orthoProjection, identity);
+        // simpleQuad.render(shaderProgram, orthoProjection, identity);
         renderModel(terrainModel, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
         renderModel(someModel, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
         renderModel(cottage, phongShader, perspective, cameraMatrix, fboDepth.texture, toLightSpace);
