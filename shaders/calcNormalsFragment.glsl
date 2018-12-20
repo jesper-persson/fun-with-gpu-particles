@@ -47,8 +47,6 @@ void main(){
     vec3 tangent7 = normalize(eight - one);
     vec3 tangent8 = normalize(nine - one);
     
-
-
     vec3 normalTemp1 = normalize(cross(tangent1, tangent2));
     vec3 normalTemp2 = normalize(cross(tangent4, tangent3));
     vec3 normalTemp3 = normalize(cross(tangent5, tangent6));

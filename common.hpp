@@ -1,31 +1,20 @@
- #pragma once 
+#pragma once 
 
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "lodepng/lodepng.h"
 #include "glew.h"
 
-
-void loadObj(std::string filename) {
-
-}
-
-
-
+// Used to get a list of height values from a multi channel png texture.
 std::vector<float>* pngTextureToFloatArray(std::string filename) {
 	const char* filenameC = (const char*)filename.c_str();
 	std::vector<unsigned char> image;
 	unsigned width, height;
 	unsigned error = lodepng::decode(image, width, height, filename);
 
-
-	// std::vector<unsigned char> imageCopy(width * height * 4);
-	// for (unsigned i = 0; i < height; i++) {
-	// 	memcpy(&imageCopy[(height - i - 1) * width * 4], &image[i * width * 4], width * 4);
-	// }
-
-	// Since heightmap we only one channel (the red), so the other channels are removed
+	// Since we only need one color component in heightmaps, we remove the other components
 	std::vector<float>* imageCopy = new std::vector<float>(width * height);
 	int newBufferIndex = 0;
 	int oldBufferIndex = 0;
@@ -33,13 +22,8 @@ std::vector<float>* pngTextureToFloatArray(std::string filename) {
 		(*imageCopy)[newBufferIndex]  = ( (float)image[oldBufferIndex] );
 	}
 
-	// std::cout << (*imageCopy)[0] << std::endl;
-	// std::cout << "adsad" << (*imageCopy)[0] << std::endl;
-
 	return imageCopy;
 }
-
-
 
 GLuint loadPNGTexture(std::string filename) {
 	const char* filenameC = (const char*)filename.c_str();

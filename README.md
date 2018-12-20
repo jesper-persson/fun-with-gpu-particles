@@ -1,13 +1,7 @@
 # Fun with GPU Particles
 
-This is a project I made for a course in advanced computer graphics at Linköping University.
+This is a project I made for a course in advanced game programming at Linköping University during the autumn of 2018.
 
-The aim of the project is to simulate particles on the GPU that interact with objects in the scene.
- 
-My inspiration for the project was the snow from Battlefield V that follows the contour of objects it collides with. I was very impressed by that when I first saw it and wanted to have a go at it myself.
+A particle system running on the GPU was implemented to simulate 400 000 snow flakes falling down the sky of a mountain scene. As the particles collide with the terrain, snow start to build up. This causes the scene to transform from the gray color of the mountain to a snow covered white scene.
 
-## Software used
-- OpenGL
-- GLFW
-- Glew
-- GLM
+![alt text](https://raw.githubusercontent.com/jesper-persson/fun-with-gpu-particles/master/result.png)

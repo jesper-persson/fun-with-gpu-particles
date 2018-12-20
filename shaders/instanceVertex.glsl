@@ -1,14 +1,14 @@
 #version 400
 
 layout (location = 0) in vec3 pos;
-layout (location = 1) in vec3 texture1;
+layout (location = 1) in vec3 texture_coord;
 
 uniform mat4 translation;
 uniform mat4 scale;
 uniform mat4 view;
-uniform mat4 perspective;
+uniform mat4 projection;
 uniform int textureSize;
-uniform sampler2D tex;
+uniform sampler2D particlePositions;
 
 out vec2 texture_out;
 out vec3 normal_out;
@@ -17,7 +17,7 @@ out vec3 frag_out;
 out float timeLeft;
 
 void main() {
-    texture_out = texture1.xy;
+    texture_out = texture_coord.xy;
 
     int texWidth = textureSize;
     int texHeight = textureSize;
@@ -25,8 +25,8 @@ void main() {
     float x = (index % texWidth) / float(textureSize);
     float y = (index / texHeight) / float(textureSize);
 
-    vec4 pixelValueT = texture(tex, vec2(x,y)).xyzw;
-    vec3 pixelValue = vec3(pixelValueT.xyz);
+    vec4 pixelValue = texture(particlePositions, vec2(x,y));
+    timeLeft = pixelValue.w;
 
     mat4 translationNew = translation;
     translationNew[3][0] = pixelValue.x;
@@ -39,9 +39,5 @@ void main() {
     faceCamera[3][2] = 0;
 
     mat4 modelToView = view * translationNew  * inverse(faceCamera) * scale;
-
-
-    timeLeft = pixelValueT.w;
-
-    gl_Position = perspective * modelToView * vec4(pos, 1);
+    gl_Position = projection * modelToView * vec4(pos, 1);
 }
