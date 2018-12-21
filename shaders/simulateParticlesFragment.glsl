@@ -111,7 +111,7 @@ void main() {
         // Update SSBO to indicate snow should accumulate where the particle collided.
         vec3 normal = normalize(texture(normalTexture, projCoord.xy).xyz);
         float normalFactor = max(0, dot(-normal, vec3(normalize(velocity.xyz))));
-        float collideValue = 1 * normalFactor * normalFactor * normalFactor;
+        float collideValue = 1 * normalFactor * normalFactor;
         collideValue = min(1, collideValue);
         collideValue = max(0, collideValue);
 

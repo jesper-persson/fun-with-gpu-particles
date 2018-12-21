@@ -46,7 +46,7 @@ void main() {
     // In that case we don't want to displace its vertex.
     bool isEdge = pos.w < 0.5;
     if (!isEdge) {
-        worldCoord.y += snowAccumulated / 400.0f; // Displace vertex based on how much snow.
+        worldCoord.y += snowAccumulated / 600.0f; // Displace vertex based on how much snow.
         snow_accumulated_out = snowAccumulated;
     }  else {
         snow_accumulated_out = snowAccumulated;

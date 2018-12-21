@@ -228,16 +228,16 @@ int main() {
 
     // Create particle systems
     ParticleSystem ps{100000};
-    ps.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps.scale = glm::vec3(0.013f, 0.013f, 1.0f);
     ps.colorTexture = loadPNGTexture("images/snow1.png");
     ParticleSystem ps2{100000};
-    ps2.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps2.scale = glm::vec3(0.013f, 0.013f, 1.0f);
     ps2.colorTexture = loadPNGTexture("images/snow2.png");
     ParticleSystem ps3{100000};
-    ps3.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps3.scale = glm::vec3(0.013f, 0.013f, 1.0f);
     ps3.colorTexture = loadPNGTexture("images/snow3.png");
     ParticleSystem ps4{100000};
-    ps4.scale = glm::vec3(0.01f, 0.01f, 1.0f);
+    ps4.scale = glm::vec3(0.013f, 0.013f, 1.0f);
     ps4.colorTexture = loadPNGTexture("images/snow4.png");
 
     // Create terrain
@@ -260,9 +260,9 @@ int main() {
     // Create cottage
     Model cottage = tinyObjLoader("models/cottage.obj");
     cottage.textureId =  loadPNGTexture("images/wood.png");
-    cottage.position =  glm::vec3(-3.0f, -5.0f, -2.0f);
+    cottage.position =  glm::vec3(-3.0f, -4.96f, -2.0f);
     cottage.scale =  glm::vec3(0.02f, 0.02f, 0.02f);
-    cottage.rotation = glm::eulerAngleY(0.0f);
+    cottage.rotation = glm::eulerAngleY(3.14162f);
     cottage.textureScale = 15;
 
     SnowMesh snowMesh;
@@ -381,8 +381,8 @@ int main() {
         glDepthMask(GL_TRUE);
 
         // Display low-pass filtered normal map
-        displayTextureQuad.textureId = fboNormals.texture;
-        displayTextureQuad.render(shaderProgram, orthoProjection, identity);
+        // displayTextureQuad.textureId = fboNormals.texture;
+        // displayTextureQuad.render(shaderProgram, orthoProjection, identity);
         
         // Display depth texture
         // displayTextureQuad.textureId = fboDepth.texture;
